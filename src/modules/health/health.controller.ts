@@ -4,14 +4,8 @@ import {
   HealthCheckService,
   HttpHealthIndicator,
 } from '@nestjs/terminus';
-import { Throttle } from "@nestjs/throttler";
 
 @Controller('health')
-@Throttle({ default: {
-    ttl: 60 * 1000,
-    limit: 100
-  }
-})
 export class HealthController {
   constructor(
     private health: HealthCheckService,

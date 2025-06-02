@@ -1,8 +1,9 @@
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
 import {HealthModule} from "./health/health.module";
+import {SwaggerModule} from "@nestjs/swagger";
 
 @Module({
-  imports: [ HealthModule],
+  imports: [ HealthModule , SwaggerModule],
   controllers: [],
   providers: [],
 })
