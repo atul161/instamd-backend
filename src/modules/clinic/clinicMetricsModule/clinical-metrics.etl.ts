@@ -1162,12 +1162,14 @@ export class ClinicalMetricsEtlService {
             };
         }
 
-        let totalReadings = 0;
-        let criticalAlerts = 0;
-        let escalations = 0;
+        // Use BigInt for accumulating counts to prevent integer overflow
+        let totalReadings = 0n;
+        let criticalAlerts = 0n;
+        let escalations = 0n;
 
         // Split patient_ids into manageable chunks
         const patientChunks = this.chunkArray(patientIds, this.CHUNK_SIZE);
+        this.logger.log(`Processing ${patientIds.length} patients in ${patientChunks.length} chunks of size ${this.CHUNK_SIZE}`);
 
         try {
             const dataSource = await this.databaseService.getConnection(practiceId);
@@ -1193,73 +1195,94 @@ export class ClinicalMetricsEtlService {
 
                     // Count total readings
                     const totalQuery = `
-                    SELECT COUNT(*) as total_count
-                    FROM device_data_transmission
-                    WHERE trim(patient_sub) IN (${placeholders})
-                        ${dateConditions}
-                `;
+                        SELECT COUNT(*) as total_count
+                        FROM device_data_transmission
+                        WHERE trim(patient_sub) IN (${placeholders})
+                            ${dateConditions}
+                    `;
 
                     const totalResult = await queryRunner.query(totalQuery, baseParams);
-                    const chunkTotal = totalResult[0]?.total_count || 0;
+                    // Convert string to BigInt to safely handle large numbers
+                    const chunkTotal = BigInt(String(totalResult[0]?.total_count || '0'));
                     totalReadings += chunkTotal;
 
                     // Count critical alerts
                     const criticalQuery = `
-                    SELECT COUNT(*) as critical_count
-                    FROM device_data_transmission
-                    WHERE trim(patient_sub) IN (${placeholders})
-                      AND critical_alert = 1
-                        ${dateConditions}
-                `;
+                        SELECT COUNT(*) as critical_count
+                        FROM device_data_transmission
+                        WHERE trim(patient_sub) IN (${placeholders})
+                          AND critical_alert = 1
+                            ${dateConditions}
+                    `;
 
                     // Count for out of range alerts
                     const outOfRangeQuery = `
-                    SELECT COUNT(*) as out_of_range_count
-                    FROM device_data_transmission
-                    WHERE trim(patient_sub) IN (${placeholders})
-                      AND out_of_range_alert = 1
-                        ${dateConditions}
-                `;
+                        SELECT COUNT(*) as out_of_range_count
+                        FROM device_data_transmission
+                        WHERE trim(patient_sub) IN (${placeholders})
+                          AND out_of_range_alert = 1
+                            ${dateConditions}
+                    `;
 
                     const criticalResult = await queryRunner.query(criticalQuery, baseParams);
-                    const chunkCritical = criticalResult[0]?.critical_count || 0;
+                    // Convert string to BigInt
+                    const chunkCritical = BigInt(String(criticalResult[0]?.critical_count || '0'));
                     criticalAlerts += chunkCritical;
 
                     // Adding critical alerts
                     const outOfRangeResult = await queryRunner.query(outOfRangeQuery, baseParams);
-                    const chunkOutOfRange = outOfRangeResult[0]?.out_of_range_count || 0;
+                    // Convert string to BigInt
+                    const chunkOutOfRange = BigInt(String(outOfRangeResult[0]?.out_of_range_count || '0'));
                     criticalAlerts += chunkOutOfRange;
 
                     // Count escalations (external alerts)
                     const escalationQuery = `
-                    SELECT COUNT(*) as escalation_count
-                    FROM device_data_transmission
-                    WHERE trim(patient_sub) IN (${placeholders})
-                      AND ext_alert = 1
-                        ${dateConditions}
-                `;
+                        SELECT COUNT(*) as escalation_count
+                        FROM device_data_transmission
+                        WHERE trim(patient_sub) IN (${placeholders})
+                          AND ext_alert = 1
+                            ${dateConditions}
+                    `;
 
                     const escalationResult = await queryRunner.query(escalationQuery, baseParams);
-                    const chunkEscalations = escalationResult[0]?.escalation_count || 0;
+                    // Convert string to BigInt
+                    const chunkEscalations = BigInt(String(escalationResult[0]?.escalation_count || '0'));
+
+                    // Enhanced logging to track progress and help with debugging
+                    this.logger.debug(`Chunk ${patientChunks.indexOf(chunk) + 1}/${patientChunks.length}: Adding ${chunkEscalations} escalations`);
+
                     escalations += chunkEscalations;
                 } finally {
                     await queryRunner.release();
                 }
             }
 
+            // Log the raw BigInt values before conversion
+            this.logger.log(`Raw BigInt counts - totalReadings: ${totalReadings}, criticalAlerts: ${criticalAlerts}, escalations: ${escalations}`);
+
+            // Convert BigInt to Number for the final result
+            // For extremely large values, this could theoretically lose precision, but it's unlikely in practice
+            const totalReadingsNum = Number(totalReadings);
+            const criticalAlertsNum = Number(criticalAlerts);
+            const escalationsNum = Number(escalations);
+
             // Calculate percentages
-            const criticalAlertsPercent = totalReadings > 0 ? (criticalAlerts / totalReadings * 100) : 0;
-            const escalationsPercent = totalReadings > 0 ? (escalations / totalReadings * 100) : 0;
+            const criticalAlertsPercent = totalReadingsNum > 0 ? (criticalAlertsNum / totalReadingsNum * 100) : 0;
+            const escalationsPercent = totalReadingsNum > 0 ? (escalationsNum / totalReadingsNum * 100) : 0;
+
+            // Log the final calculated values
+            this.logger.log(`Final counts - totalReadings: ${totalReadingsNum}, criticalAlerts: ${criticalAlertsNum}, escalations: ${escalationsNum}`);
 
             return {
-                total_readings: totalReadings,
-                critical_alerts_count: criticalAlerts,
+                total_readings: totalReadingsNum,
+                critical_alerts_count: criticalAlertsNum,
                 critical_alerts_percent: parseFloat(criticalAlertsPercent.toFixed(2)),
-                escalations_count: escalations,
+                escalations_count: escalationsNum,
                 escalations_percent: parseFloat(escalationsPercent.toFixed(2))
             };
         } catch (error) {
             this.logger.error(`Error retrieving alert metrics: ${error.message}`);
+            this.logger.error(error.stack);
             return {
                 total_readings: 0,
                 critical_alerts_count: 0,
@@ -1269,7 +1292,6 @@ export class ClinicalMetricsEtlService {
             };
         }
     }
-
     /**
      * Store calculated clinical metrics in the database
      */
