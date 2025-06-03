@@ -16,7 +16,7 @@ export class PatientEnrollmentPeriodsService {
     /**
      * Main cron job that runs daily to update patient enrollment periods
      */
-    @Cron(CronExpression.EVERY_HOUR)
+    @Cron(CronExpression.EVERY_MINUTE)
     async runDailyEnrollmentUpdate() {
         const startTime = new Date();
         this.logger.log(`===== STARTING PATIENT ENROLLMENT TRACKER at ${startTime} =====`);
