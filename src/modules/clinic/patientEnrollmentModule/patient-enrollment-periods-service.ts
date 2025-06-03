@@ -5,6 +5,7 @@ import { differenceInDays } from 'date-fns';
 import { PatientEnrollmentPeriod } from "./entity/patient-enrollment.entity";
 import {EnrollmentSummary, PracticeDbConfig, practiceList} from "./interface/enrollment-period.interface";
 import * as process from "node:process";
+import {ClinicalMetricsSummary} from "../clinicMetricsModule/entity/entity";
 
 @Injectable()
 export class PatientEnrollmentPeriodsService {
@@ -120,13 +121,16 @@ export class PatientEnrollmentPeriodsService {
         try {
             const dataSource = new DataSource({
                 type: 'mysql',
+                connectorPackage: "mysql2",
                 host: config.host,
                 port: config.port,
                 username: config.username,
                 password: config.password,
                 database: config.database,
-                entities: [PatientEnrollmentPeriod],
-                synchronize: false, // Don't auto-sync in production
+                entities: [PatientEnrollmentPeriod, ClinicalMetricsSummary],
+                synchronize: false,
+                connectTimeout: 30000,
+                logging: false,
             });
 
             await dataSource.initialize();

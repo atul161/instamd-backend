@@ -15,7 +15,6 @@ export class DatabaseService {
     /**
      * Get all practice database configurations
      */
-
     private getPracticeDbConfigs(): PracticeDbConfig[] {
         // Get practice configurations from config service
         // This could be stored in environment variables, database, or configuration files
@@ -84,7 +83,7 @@ export class DatabaseService {
                 username: practiceConfig.username,
                 password: practiceConfig.password,
                 database: practiceConfig.database,
-                entities: [PatientEnrollmentPeriod , ClinicalMetricsSummary],
+                entities: [PatientEnrollmentPeriod, ClinicalMetricsSummary],
                 synchronize: false,
             });
 
@@ -136,13 +135,17 @@ export class DatabaseService {
 
             const dataSource = new DataSource({
                 type: 'mysql',
+                connectorPackage: "mysql2",
                 host: config.host,
                 port: config.port,
                 username: config.username,
                 password: config.password,
                 database: config.database,
-                entities: [PatientEnrollmentPeriod , ClinicalMetricsSummary],
+                entities: [PatientEnrollmentPeriod, ClinicalMetricsSummary],
                 synchronize: false,
+                connectTimeout: 30000,
+                logging: false,
+
             });
 
             await dataSource.initialize();
