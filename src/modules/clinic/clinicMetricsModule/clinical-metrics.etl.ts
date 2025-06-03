@@ -88,7 +88,7 @@ export class ClinicalMetricsEtlService {
     /**
      * Main cron job that runs daily to update clinical metrics
      */
-    @Cron(CronExpression.EVERY_HOUR)
+    @Cron(CronExpression.EVERY_2_HOURS)
     async runDailyClinicalMetricsUpdate() {
         const startTime = new Date();
         this.logger.log(`===== STARTING CLINICAL METRICS ETL at ${startTime} =====`);
@@ -572,9 +572,7 @@ export class ClinicalMetricsEtlService {
             }
 
             try {
-                console.log("Before Parsed Value", reading.detailed_value);
                 const metaDict = this.parseBpValue(reading.detailed_value);
-                console.log("After Parsed Value", metaDict);
 
                 // Extract values
                 const sys = metaDict.sys;
@@ -748,9 +746,9 @@ export class ClinicalMetricsEtlService {
             }
 
             try {
-                console.log("Before Parsed Value SP02", reading.detailed_value);
+                // console.log("Before Parsed Value SP02", reading.detailed_value);
                 const metaSpo2 = this.parseSpo2Value(reading.detailed_value);
-                console.log("After Parsed Value Spo2", metaSpo2);
+                // console.log("After Parsed Value Spo2", metaSpo2);
 
                 const spo2 = metaSpo2.spo2;
                 const pr = metaSpo2.pr;
@@ -920,9 +918,9 @@ export class ClinicalMetricsEtlService {
                 }
 
                 try {
-                    console.log("Before Parsed Value Weight", reading.detailed_value);
+                    // console.log("Before Parsed Value Weight", reading.detailed_value);
                     const metaWeight = this.parseWeightValue(reading.detailed_value);
-                    console.log("After Parsed Value Weight", metaWeight);
+                    // console.log("After Parsed Value Weight", metaWeight);
 
                     const weight = metaWeight.weight;
                     const height = metaWeight.height;
@@ -1039,9 +1037,9 @@ export class ClinicalMetricsEtlService {
             }
 
             try {
-                console.log("Before Parsed Value Glucose", reading.detailed_value);
+                // console.log("Before Parsed Value Glucose", reading.detailed_value);
                 const metaGlucose = this.parseGlucoseValue(reading.detailed_value, reading.entry_type);
-                console.log("After Parsed Value Glucose", metaGlucose);
+                // console.log("After Parsed Value Glucose", metaGlucose);
 
                 const glucoseValue = metaGlucose.glucose;
                 const glucoseType = metaGlucose.type;
