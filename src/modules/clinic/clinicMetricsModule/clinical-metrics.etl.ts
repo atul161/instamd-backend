@@ -88,7 +88,7 @@ export class ClinicalMetricsEtlService {
     /**
      * Main cron job that runs daily to update clinical metrics
      */
-    @Cron(CronExpression.EVERY_4_HOURS)
+    @Cron(CronExpression.EVERY_HOUR)
     async runDailyClinicalMetricsUpdate() {
         const startTime = new Date();
         this.logger.log(`===== STARTING CLINICAL METRICS ETL at ${startTime} =====`);
