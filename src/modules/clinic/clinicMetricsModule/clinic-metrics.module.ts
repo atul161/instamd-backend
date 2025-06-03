@@ -3,6 +3,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
 import {ClinicalMetricsEtlService} from "./clinical-metrics.etl";
 import {DatabaseModule} from "../../database/database.module";
+import {ClinicalService} from "./clinical.service";
+import {ClinicalMetricsController} from "./clinical-metrics.controller";
 
 @Module({
     imports: [
@@ -10,10 +12,11 @@ import {DatabaseModule} from "../../database/database.module";
         ScheduleModule.forRoot(),
         DatabaseModule
     ],
-    controllers: [],
+    controllers: [ClinicalMetricsController],
     providers: [
-        ClinicalMetricsEtlService
+        ClinicalMetricsEtlService,
+        ClinicalService
     ],
-    exports: [ClinicalMetricsEtlService],
+    exports: [ClinicalMetricsEtlService , ClinicalService],
 })
 export class ClinicMetricsModule {}
