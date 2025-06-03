@@ -96,6 +96,7 @@ export class PatientEnrollmentPeriodsService {
             if (practiceId) {
                 const dbUser = process.env[`PRACTICE_${i-1}_DB_USER`]
                 const dbPassword = process.env[`PRACTICE_${i-1}_DB_PASSWORD`]
+                console.log(dbUser, dbPassword);
                 practiceConfigs.push({
                     practiceId,
                     practiceName: practiceName,
