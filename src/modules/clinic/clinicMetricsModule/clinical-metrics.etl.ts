@@ -1317,7 +1317,6 @@ export class ClinicalMetricsEtlService {
                     FROM clinical_metrics_summary
                     WHERE practice_id = ?
                       AND enrollment_period = ?
-                      AND summary_date = ?
                 `;
 
                 const result = await queryRunner.query(checkQuery, [practiceId, enrollmentPeriod, summaryDate]);
