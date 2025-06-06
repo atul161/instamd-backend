@@ -12,7 +12,7 @@ import { ErrorInterceptor } from './common/interceptors/error.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import {AppModule} from "./modules/app.module";
 
-
+//
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bodyParser: true,

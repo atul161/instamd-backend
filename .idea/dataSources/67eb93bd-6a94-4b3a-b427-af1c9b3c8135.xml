@@ -1431,7 +1431,7 @@ PatientSub</ColNames>
       <UnderlyingIndexName>PRIMARY</UnderlyingIndexName>
     </key>
     <column id="378" parent="304" name="id">
-      <AutoIncrement>6</AutoIncrement>
+      <AutoIncrement>16</AutoIncrement>
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StoredType>int|0s</StoredType>
@@ -1456,848 +1456,988 @@ PatientSub</ColNames>
       <Position>5</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="383" parent="304" name="bp_abnormal_count">
+    <column id="383" parent="304" name="bp_patients_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>6</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="384" parent="304" name="bp_abnormal_percent">
-      <DefaultExpression>0.00</DefaultExpression>
+    <column id="384" parent="304" name="bp_abnormal_count">
+      <DefaultExpression>0</DefaultExpression>
       <Position>7</Position>
-      <StoredType>decimal(5,2 digit)|0s</StoredType>
+      <StoredType>int|0s</StoredType>
     </column>
-    <column id="385" parent="304" name="bp_avg_sys">
+    <column id="385" parent="304" name="bp_abnormal_percent">
       <DefaultExpression>0.00</DefaultExpression>
       <Position>8</Position>
       <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="386" parent="304" name="bp_avg_dia">
-      <DefaultExpression>0.00</DefaultExpression>
+    <column id="386" parent="304" name="bp_abnormal_patients_count">
+      <DefaultExpression>0</DefaultExpression>
       <Position>9</Position>
-      <StoredType>decimal(5,2 digit)|0s</StoredType>
+      <StoredType>int|0s</StoredType>
     </column>
-    <column id="387" parent="304" name="bp_avg_hr">
+    <column id="387" parent="304" name="bp_avg_sys">
       <DefaultExpression>0.00</DefaultExpression>
       <Position>10</Position>
       <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="388" parent="304" name="bp_arrhythmia_count">
-      <DefaultExpression>0</DefaultExpression>
+    <column id="388" parent="304" name="bp_avg_dia">
+      <DefaultExpression>0.00</DefaultExpression>
       <Position>11</Position>
-      <StoredType>int|0s</StoredType>
+      <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="389" parent="304" name="bp_arrhythmia_percent">
+    <column id="389" parent="304" name="bp_avg_hr">
       <DefaultExpression>0.00</DefaultExpression>
       <Position>12</Position>
       <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="390" parent="304" name="bp_normal_count">
+    <column id="390" parent="304" name="bp_arrhythmia_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>13</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="391" parent="304" name="bp_normal_percent">
+    <column id="391" parent="304" name="bp_arrhythmia_percent">
       <DefaultExpression>0.00</DefaultExpression>
       <Position>14</Position>
       <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="392" parent="304" name="bp_normal_avg_sys">
-      <DefaultExpression>0.00</DefaultExpression>
+    <column id="392" parent="304" name="bp_arrhythmia_patients_count">
+      <DefaultExpression>0</DefaultExpression>
       <Position>15</Position>
-      <StoredType>decimal(5,2 digit)|0s</StoredType>
+      <StoredType>int|0s</StoredType>
     </column>
-    <column id="393" parent="304" name="bp_normal_avg_dia">
-      <DefaultExpression>0.00</DefaultExpression>
+    <column id="393" parent="304" name="bp_normal_count">
+      <DefaultExpression>0</DefaultExpression>
       <Position>16</Position>
-      <StoredType>decimal(5,2 digit)|0s</StoredType>
+      <StoredType>int|0s</StoredType>
     </column>
-    <column id="394" parent="304" name="bp_normal_avg_hr">
+    <column id="394" parent="304" name="bp_normal_percent">
       <DefaultExpression>0.00</DefaultExpression>
       <Position>17</Position>
       <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="395" parent="304" name="bp_sys_gt_130_dia_gt_80_count">
+    <column id="395" parent="304" name="bp_normal_patients_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>18</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="396" parent="304" name="bp_sys_gt_130_dia_gt_80_percent">
+    <column id="396" parent="304" name="bp_normal_avg_sys">
       <DefaultExpression>0.00</DefaultExpression>
       <Position>19</Position>
       <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="397" parent="304" name="bp_sys_gt_140_dia_gt_80_count">
-      <DefaultExpression>0</DefaultExpression>
+    <column id="397" parent="304" name="bp_normal_avg_dia">
+      <DefaultExpression>0.00</DefaultExpression>
       <Position>20</Position>
-      <StoredType>int|0s</StoredType>
+      <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="398" parent="304" name="bp_sys_gt_140_dia_gt_80_percent">
+    <column id="398" parent="304" name="bp_normal_avg_hr">
       <DefaultExpression>0.00</DefaultExpression>
       <Position>21</Position>
       <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="399" parent="304" name="bp_sys_gt_150_dia_gt_80_count">
+    <column id="399" parent="304" name="bp_sys_gt_130_dia_gt_80_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>22</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="400" parent="304" name="bp_sys_gt_150_dia_gt_80_percent">
+    <column id="400" parent="304" name="bp_sys_gt_130_dia_gt_80_percent">
       <DefaultExpression>0.00</DefaultExpression>
       <Position>23</Position>
       <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="401" parent="304" name="bp_sys_gt_160_dia_gt_80_count">
+    <column id="401" parent="304" name="bp_sys_gt_130_dia_gt_80_patients">
       <DefaultExpression>0</DefaultExpression>
       <Position>24</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="402" parent="304" name="bp_sys_gt_160_dia_gt_80_percent">
-      <DefaultExpression>0.00</DefaultExpression>
-      <Position>25</Position>
-      <StoredType>decimal(5,2 digit)|0s</StoredType>
-    </column>
-    <column id="403" parent="304" name="bp_sys_lt_90_dia_lt_60_count">
+    <column id="402" parent="304" name="bp_sys_gt_140_dia_gt_80_count">
       <DefaultExpression>0</DefaultExpression>
-      <Position>26</Position>
+      <Position>25</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="404" parent="304" name="bp_sys_lt_90_dia_lt_60_percent">
+    <column id="403" parent="304" name="bp_sys_gt_140_dia_gt_80_percent">
       <DefaultExpression>0.00</DefaultExpression>
-      <Position>27</Position>
+      <Position>26</Position>
       <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="405" parent="304" name="bp_hr_abnormal_count">
+    <column id="404" parent="304" name="bp_sys_gt_140_dia_gt_80_patients">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>27</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="405" parent="304" name="bp_sys_gt_150_dia_gt_80_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>28</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="406" parent="304" name="bp_hr_abnormal_percent">
+    <column id="406" parent="304" name="bp_sys_gt_150_dia_gt_80_percent">
       <DefaultExpression>0.00</DefaultExpression>
       <Position>29</Position>
       <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="407" parent="304" name="spo2_total_readings">
+    <column id="407" parent="304" name="bp_sys_gt_150_dia_gt_80_patients">
       <DefaultExpression>0</DefaultExpression>
       <Position>30</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="408" parent="304" name="spo2_90_92_count">
+    <column id="408" parent="304" name="bp_sys_gt_160_dia_gt_80_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>31</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="409" parent="304" name="spo2_90_92_percent">
+    <column id="409" parent="304" name="bp_sys_gt_160_dia_gt_80_percent">
       <DefaultExpression>0.00</DefaultExpression>
       <Position>32</Position>
       <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="410" parent="304" name="spo2_88_89_count">
+    <column id="410" parent="304" name="bp_sys_gt_160_dia_gt_80_patients">
       <DefaultExpression>0</DefaultExpression>
       <Position>33</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="411" parent="304" name="spo2_88_89_percent">
-      <DefaultExpression>0.00</DefaultExpression>
-      <Position>34</Position>
-      <StoredType>decimal(5,2 digit)|0s</StoredType>
-    </column>
-    <column id="412" parent="304" name="spo2_below_88_count">
+    <column id="411" parent="304" name="bp_sys_lt_90_dia_lt_60_count">
       <DefaultExpression>0</DefaultExpression>
-      <Position>35</Position>
+      <Position>34</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="413" parent="304" name="spo2_below_88_percent">
+    <column id="412" parent="304" name="bp_sys_lt_90_dia_lt_60_percent">
       <DefaultExpression>0.00</DefaultExpression>
-      <Position>36</Position>
+      <Position>35</Position>
       <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="414" parent="304" name="weight_total_readings">
+    <column id="413" parent="304" name="bp_sys_lt_90_dia_lt_60_patients">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>36</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="414" parent="304" name="bp_hr_abnormal_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>37</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="415" parent="304" name="weight_gain_4pct_count">
-      <DefaultExpression>0</DefaultExpression>
-      <Position>38</Position>
-      <StoredType>int|0s</StoredType>
-    </column>
-    <column id="416" parent="304" name="weight_gain_4pct_percent">
+    <column id="415" parent="304" name="bp_hr_abnormal_percent">
       <DefaultExpression>0.00</DefaultExpression>
-      <Position>39</Position>
+      <Position>38</Position>
       <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="417" parent="304" name="glucose_fasting_total">
+    <column id="416" parent="304" name="bp_hr_abnormal_patients_count">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>39</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="417" parent="304" name="spo2_total_readings">
       <DefaultExpression>0</DefaultExpression>
       <Position>40</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="418" parent="304" name="glucose_fasting_above_130_count">
+    <column id="418" parent="304" name="spo2_patients_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>41</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="419" parent="304" name="glucose_fasting_above_130_percent">
-      <DefaultExpression>0.00</DefaultExpression>
-      <Position>42</Position>
-      <StoredType>decimal(5,2 digit)|0s</StoredType>
-    </column>
-    <column id="420" parent="304" name="glucose_fasting_above_160_count">
+    <column id="419" parent="304" name="spo2_90_92_count">
       <DefaultExpression>0</DefaultExpression>
-      <Position>43</Position>
+      <Position>42</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="421" parent="304" name="glucose_fasting_above_160_percent">
+    <column id="420" parent="304" name="spo2_90_92_percent">
       <DefaultExpression>0.00</DefaultExpression>
-      <Position>44</Position>
+      <Position>43</Position>
       <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="422" parent="304" name="glucose_fasting_above_180_count">
+    <column id="421" parent="304" name="spo2_90_92_patients_count">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>44</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="422" parent="304" name="spo2_88_89_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>45</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="423" parent="304" name="glucose_fasting_above_180_percent">
+    <column id="423" parent="304" name="spo2_88_89_percent">
       <DefaultExpression>0.00</DefaultExpression>
       <Position>46</Position>
       <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="424" parent="304" name="glucose_fasting_below_70_count">
+    <column id="424" parent="304" name="spo2_88_89_patients_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>47</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="425" parent="304" name="glucose_fasting_below_70_percent">
-      <DefaultExpression>0.00</DefaultExpression>
-      <Position>48</Position>
-      <StoredType>decimal(5,2 digit)|0s</StoredType>
-    </column>
-    <column id="426" parent="304" name="glucose_fasting_below_54_count">
+    <column id="425" parent="304" name="spo2_below_88_count">
       <DefaultExpression>0</DefaultExpression>
-      <Position>49</Position>
+      <Position>48</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="427" parent="304" name="glucose_fasting_below_54_percent">
+    <column id="426" parent="304" name="spo2_below_88_percent">
       <DefaultExpression>0.00</DefaultExpression>
-      <Position>50</Position>
+      <Position>49</Position>
       <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="428" parent="304" name="glucose_postmeal_total">
+    <column id="427" parent="304" name="spo2_below_88_patients_count">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>50</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="428" parent="304" name="weight_total_readings">
       <DefaultExpression>0</DefaultExpression>
       <Position>51</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="429" parent="304" name="glucose_postmeal_above_180_count">
+    <column id="429" parent="304" name="weight_gain_4pct_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>52</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="430" parent="304" name="glucose_postmeal_above_180_percent">
+    <column id="430" parent="304" name="weight_gain_4pct_percent">
       <DefaultExpression>0.00</DefaultExpression>
       <Position>53</Position>
       <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="431" parent="304" name="glucose_postmeal_above_200_count">
+    <column id="431" parent="304" name="weight_gain_4pct_patients_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>54</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="432" parent="304" name="glucose_postmeal_above_200_percent">
-      <DefaultExpression>0.00</DefaultExpression>
+    <column id="432" parent="304" name="glucose_fasting_total">
+      <DefaultExpression>0</DefaultExpression>
       <Position>55</Position>
-      <StoredType>decimal(5,2 digit)|0s</StoredType>
+      <StoredType>int|0s</StoredType>
     </column>
-    <column id="433" parent="304" name="glucose_random_total">
+    <column id="433" parent="304" name="glucose_fasting_above_130_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>56</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="434" parent="304" name="glucose_random_above_200_count">
-      <DefaultExpression>0</DefaultExpression>
-      <Position>57</Position>
-      <StoredType>int|0s</StoredType>
-    </column>
-    <column id="435" parent="304" name="glucose_random_above_200_percent">
+    <column id="434" parent="304" name="glucose_fasting_above_130_percent">
       <DefaultExpression>0.00</DefaultExpression>
-      <Position>58</Position>
+      <Position>57</Position>
       <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="436" parent="304" name="glucose_random_below_70_count">
+    <column id="435" parent="304" name="glucose_fasting_above_130_patients">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>58</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="436" parent="304" name="glucose_fasting_above_160_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>59</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="437" parent="304" name="glucose_random_below_70_percent">
+    <column id="437" parent="304" name="glucose_fasting_above_160_percent">
       <DefaultExpression>0.00</DefaultExpression>
       <Position>60</Position>
       <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="438" parent="304" name="critical_alerts_count">
+    <column id="438" parent="304" name="glucose_fasting_above_160_patients">
       <DefaultExpression>0</DefaultExpression>
       <Position>61</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="439" parent="304" name="critical_alerts_percent">
-      <DefaultExpression>0.00</DefaultExpression>
-      <Position>62</Position>
-      <StoredType>decimal(5,2 digit)|0s</StoredType>
-    </column>
-    <column id="440" parent="304" name="escalations_count">
+    <column id="439" parent="304" name="glucose_fasting_above_180_count">
       <DefaultExpression>0</DefaultExpression>
-      <Position>63</Position>
+      <Position>62</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="441" parent="304" name="escalations_percent">
+    <column id="440" parent="304" name="glucose_fasting_above_180_percent">
       <DefaultExpression>0.00</DefaultExpression>
-      <Position>64</Position>
+      <Position>63</Position>
       <StoredType>decimal(5,2 digit)|0s</StoredType>
     </column>
-    <column id="442" parent="304" name="created_at">
-      <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
+    <column id="441" parent="304" name="glucose_fasting_above_180_patients">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>64</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="442" parent="304" name="glucose_fasting_below_70_count">
+      <DefaultExpression>0</DefaultExpression>
       <Position>65</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="443" parent="304" name="glucose_fasting_below_70_percent">
+      <DefaultExpression>0.00</DefaultExpression>
+      <Position>66</Position>
+      <StoredType>decimal(5,2 digit)|0s</StoredType>
+    </column>
+    <column id="444" parent="304" name="glucose_fasting_below_70_patients">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>67</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="445" parent="304" name="glucose_fasting_below_54_count">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>68</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="446" parent="304" name="glucose_fasting_below_54_percent">
+      <DefaultExpression>0.00</DefaultExpression>
+      <Position>69</Position>
+      <StoredType>decimal(5,2 digit)|0s</StoredType>
+    </column>
+    <column id="447" parent="304" name="glucose_fasting_below_54_patients">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>70</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="448" parent="304" name="glucose_postmeal_total">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>71</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="449" parent="304" name="glucose_postmeal_patients_count">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>72</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="450" parent="304" name="glucose_postmeal_above_180_count">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>73</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="451" parent="304" name="glucose_postmeal_above_180_percent">
+      <DefaultExpression>0.00</DefaultExpression>
+      <Position>74</Position>
+      <StoredType>decimal(5,2 digit)|0s</StoredType>
+    </column>
+    <column id="452" parent="304" name="glucose_postmeal_above_180_patients">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>75</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="453" parent="304" name="glucose_postmeal_above_200_count">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>76</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="454" parent="304" name="glucose_postmeal_above_200_percent">
+      <DefaultExpression>0.00</DefaultExpression>
+      <Position>77</Position>
+      <StoredType>decimal(5,2 digit)|0s</StoredType>
+    </column>
+    <column id="455" parent="304" name="glucose_postmeal_above_200_patients">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>78</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="456" parent="304" name="glucose_random_total">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>79</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="457" parent="304" name="glucose_random_patients_count">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>80</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="458" parent="304" name="glucose_random_above_200_count">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>81</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="459" parent="304" name="glucose_random_above_200_percent">
+      <DefaultExpression>0.00</DefaultExpression>
+      <Position>82</Position>
+      <StoredType>decimal(5,2 digit)|0s</StoredType>
+    </column>
+    <column id="460" parent="304" name="glucose_random_above_200_patients">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>83</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="461" parent="304" name="glucose_random_below_70_count">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>84</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="462" parent="304" name="glucose_random_below_70_percent">
+      <DefaultExpression>0.00</DefaultExpression>
+      <Position>85</Position>
+      <StoredType>decimal(5,2 digit)|0s</StoredType>
+    </column>
+    <column id="463" parent="304" name="glucose_random_below_70_patients">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>86</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="464" parent="304" name="critical_alerts_count">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>87</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="465" parent="304" name="critical_alerts_percent">
+      <DefaultExpression>0.00</DefaultExpression>
+      <Position>88</Position>
+      <StoredType>decimal(5,2 digit)|0s</StoredType>
+    </column>
+    <column id="466" parent="304" name="critical_alerts_patients_count">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>89</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="467" parent="304" name="escalations_count">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>90</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="468" parent="304" name="escalations_percent">
+      <DefaultExpression>0.00</DefaultExpression>
+      <Position>91</Position>
+      <StoredType>decimal(5,2 digit)|0s</StoredType>
+    </column>
+    <column id="469" parent="304" name="escalations_patients_count">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>92</Position>
+      <StoredType>int|0s</StoredType>
+    </column>
+    <column id="470" parent="304" name="created_at">
+      <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
+      <Position>93</Position>
       <StoredType>timestamp|0s</StoredType>
     </column>
-    <column id="443" parent="304" name="updated_at">
+    <column id="471" parent="304" name="updated_at">
       <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
       <OnUpdate>CURRENT_TIMESTAMP</OnUpdate>
-      <Position>66</Position>
+      <Position>94</Position>
       <StoredType>timestamp|0s</StoredType>
     </column>
-    <index id="444" parent="304" name="PRIMARY">
+    <index id="472" parent="304" name="PRIMARY">
       <ColNames>id</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <index id="445" parent="304" name="idx_practice_period_date">
+    <index id="473" parent="304" name="idx_practice_period_date">
       <ColNames>practice_id
 enrollment_period
 summary_date</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <index id="446" parent="304" name="idx_summary_date">
+    <index id="474" parent="304" name="idx_summary_date">
       <ColNames>summary_date</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="447" parent="304" name="idx_practice_id">
+    <index id="475" parent="304" name="idx_practice_id">
       <ColNames>practice_id</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="448" parent="304" name="idx_enrollment_period">
+    <index id="476" parent="304" name="idx_enrollment_period">
       <ColNames>enrollment_period</ColNames>
       <Type>btree</Type>
     </index>
-    <key id="449" parent="304" name="PRIMARY">
+    <key id="477" parent="304" name="PRIMARY">
       <NameSurrogate>1</NameSurrogate>
       <Primary>1</Primary>
       <UnderlyingIndexName>PRIMARY</UnderlyingIndexName>
     </key>
-    <key id="450" parent="304" name="idx_practice_period_date">
+    <key id="478" parent="304" name="idx_practice_period_date">
       <UnderlyingIndexName>idx_practice_period_date</UnderlyingIndexName>
     </key>
-    <column id="451" parent="305" name="iddevice_data_transmission">
+    <column id="479" parent="305" name="iddevice_data_transmission">
       <AutoIncrement>326804</AutoIncrement>
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="452" parent="305" name="id">
+    <column id="480" parent="305" name="id">
       <Position>2</Position>
       <StoredType>varchar(300)|0s</StoredType>
     </column>
-    <column id="453" parent="305" name="patient_sub">
+    <column id="481" parent="305" name="patient_sub">
       <Position>3</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <column id="454" parent="305" name="provider_sub">
+    <column id="482" parent="305" name="provider_sub">
       <Position>4</Position>
       <StoredType>varchar(2000)|0s</StoredType>
     </column>
-    <column id="455" parent="305" name="device_name">
+    <column id="483" parent="305" name="device_name">
       <Position>5</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <column id="456" parent="305" name="detailed_value">
+    <column id="484" parent="305" name="detailed_value">
       <Position>6</Position>
       <StoredType>varchar(500)|0s</StoredType>
     </column>
-    <column id="457" parent="305" name="created">
+    <column id="485" parent="305" name="created">
       <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>7</Position>
       <StoredType>datetime|0s</StoredType>
     </column>
-    <column id="458" parent="305" name="timestamp">
+    <column id="486" parent="305" name="timestamp">
       <Position>8</Position>
       <StoredType>datetime|0s</StoredType>
     </column>
-    <column id="459" parent="305" name="local_timestamp">
+    <column id="487" parent="305" name="local_timestamp">
       <Position>9</Position>
       <StoredType>datetime|0s</StoredType>
     </column>
-    <column id="460" parent="305" name="app_name">
+    <column id="488" parent="305" name="app_name">
       <Position>10</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <column id="461" parent="305" name="manual_entry">
+    <column id="489" parent="305" name="manual_entry">
       <NotNull>1</NotNull>
       <Position>11</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="462" parent="305" name="entry_type">
+    <column id="490" parent="305" name="entry_type">
       <Position>12</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <column id="463" parent="305" name="alert_setting">
+    <column id="491" parent="305" name="alert_setting">
       <Position>13</Position>
       <StoredType>varchar(500)|0s</StoredType>
     </column>
-    <column id="464" parent="305" name="out_of_range_alert">
+    <column id="492" parent="305" name="out_of_range_alert">
       <Position>14</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="465" parent="305" name="critical_alert_settings">
+    <column id="493" parent="305" name="critical_alert_settings">
       <Position>15</Position>
       <StoredType>varchar(500)|0s</StoredType>
     </column>
-    <column id="466" parent="305" name="critical_alert">
+    <column id="494" parent="305" name="critical_alert">
       <Position>16</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="467" parent="305" name="ext_alert">
+    <column id="495" parent="305" name="ext_alert">
       <Position>17</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="468" parent="305" name="ext_alert_comments">
+    <column id="496" parent="305" name="ext_alert_comments">
       <Position>18</Position>
       <StoredType>longtext|0s</StoredType>
     </column>
-    <column id="469" parent="305" name="review_start_date">
+    <column id="497" parent="305" name="review_start_date">
       <Position>19</Position>
       <StoredType>datetime|0s</StoredType>
     </column>
-    <column id="470" parent="305" name="review_end_date">
+    <column id="498" parent="305" name="review_end_date">
       <Position>20</Position>
       <StoredType>datetime|0s</StoredType>
     </column>
-    <column id="471" parent="305" name="dataTransmissionDate">
+    <column id="499" parent="305" name="dataTransmissionDate">
       <Position>21</Position>
       <StoredType>datetime|0s</StoredType>
     </column>
-    <column id="472" parent="305" name="highSys">
+    <column id="500" parent="305" name="highSys">
       <Position>22</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="473" parent="305" name="lowSys">
+    <column id="501" parent="305" name="lowSys">
       <Position>23</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="474" parent="305" name="highDia">
+    <column id="502" parent="305" name="highDia">
       <Position>24</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="475" parent="305" name="lowDia">
+    <column id="503" parent="305" name="lowDia">
       <Position>25</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="476" parent="305" name="highPulse">
+    <column id="504" parent="305" name="highPulse">
       <Position>26</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="477" parent="305" name="lowPulse">
+    <column id="505" parent="305" name="lowPulse">
       <Position>27</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="478" parent="305" name="lowSpo2">
+    <column id="506" parent="305" name="lowSpo2">
       <Position>28</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="479" parent="305" name="highBMI">
+    <column id="507" parent="305" name="highBMI">
       <Position>29</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="480" parent="305" name="highSugar">
+    <column id="508" parent="305" name="highSugar">
       <Position>30</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="481" parent="305" name="web_sync">
+    <column id="509" parent="305" name="web_sync">
       <DefaultExpression>&apos;no&apos;</DefaultExpression>
       <Position>31</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <index id="482" parent="305" name="PRIMARY">
+    <index id="510" parent="305" name="PRIMARY">
       <ColNames>iddevice_data_transmission</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <index id="483" parent="305" name="id_UNIQUE">
+    <index id="511" parent="305" name="id_UNIQUE">
       <ColNames>id</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <index id="484" parent="305" name="idx_ddt_patient_timestamp">
+    <index id="512" parent="305" name="idx_ddt_patient_timestamp">
       <ColNames>patient_sub
 timestamp</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="485" parent="305" name="idx_ddt_weight_patient_timestamp">
+    <index id="513" parent="305" name="idx_ddt_weight_patient_timestamp">
       <ColNames>device_name
 patient_sub
 timestamp</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="486" parent="305" name="idx_ddt_device_timestamp_patient">
+    <index id="514" parent="305" name="idx_ddt_device_timestamp_patient">
       <ColNames>device_name
 timestamp
 patient_sub</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="487" parent="305" name="idx_ddt_glucose_entry_type">
+    <index id="515" parent="305" name="idx_ddt_glucose_entry_type">
       <ColNames>device_name
 timestamp
 entry_type
 patient_sub</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="488" parent="305" name="idx_device_data_transmission_device_name">
+    <index id="516" parent="305" name="idx_device_data_transmission_device_name">
       <ColNames>device_name</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="489" parent="305" name="idx_device_data_transmission_timestamp_device_name">
+    <index id="517" parent="305" name="idx_device_data_transmission_timestamp_device_name">
       <ColNames>timestamp
 device_name</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="490" parent="305" name="idx_device_data_transmission_timestamp">
+    <index id="518" parent="305" name="idx_device_data_transmission_timestamp">
       <ColNames>timestamp</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="491" parent="305" name="idx_ddt_critical_alert">
+    <index id="519" parent="305" name="idx_ddt_critical_alert">
       <ColNames>critical_alert
 timestamp
 patient_sub</ColNames>
       <Type>btree</Type>
     </index>
-    <key id="492" parent="305" name="PRIMARY">
+    <key id="520" parent="305" name="PRIMARY">
       <NameSurrogate>1</NameSurrogate>
       <Primary>1</Primary>
       <UnderlyingIndexName>PRIMARY</UnderlyingIndexName>
     </key>
-    <key id="493" parent="305" name="id_UNIQUE">
+    <key id="521" parent="305" name="id_UNIQUE">
       <UnderlyingIndexName>id_UNIQUE</UnderlyingIndexName>
     </key>
-    <column id="494" parent="306" name="id">
+    <column id="522" parent="306" name="id">
       <AutoIncrement>1946</AutoIncrement>
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="495" parent="306" name="patient_sub">
+    <column id="523" parent="306" name="patient_sub">
       <Position>2</Position>
       <StoredType>varchar(200)|0s</StoredType>
     </column>
-    <column id="496" parent="306" name="primary_diagnosis">
+    <column id="524" parent="306" name="primary_diagnosis">
       <Position>3</Position>
       <StoredType>varchar(2000)|0s</StoredType>
     </column>
-    <column id="497" parent="306" name="secondary_diagnosis">
+    <column id="525" parent="306" name="secondary_diagnosis">
       <Position>4</Position>
       <StoredType>varchar(2000)|0s</StoredType>
     </column>
-    <column id="498" parent="306" name="education_location">
+    <column id="526" parent="306" name="education_location">
       <Position>5</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <column id="499" parent="306" name="created">
+    <column id="527" parent="306" name="created">
       <Position>6</Position>
       <StoredType>timestamp|0s</StoredType>
     </column>
-    <column id="500" parent="306" name="modified">
+    <column id="528" parent="306" name="modified">
       <Position>7</Position>
       <StoredType>timestamp|0s</StoredType>
     </column>
-    <index id="501" parent="306" name="PRIMARY">
+    <index id="529" parent="306" name="PRIMARY">
       <ColNames>id</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <index id="502" parent="306" name="idx_diagnosis_patient_primary">
+    <index id="530" parent="306" name="idx_diagnosis_patient_primary">
       <ColNames>patient_sub
 primary_diagnosis</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="503" parent="306" name="idx_diagnosis_patient_sub">
+    <index id="531" parent="306" name="idx_diagnosis_patient_sub">
       <ColNames>patient_sub</ColNames>
       <Type>btree</Type>
     </index>
-    <key id="504" parent="306" name="PRIMARY">
+    <key id="532" parent="306" name="PRIMARY">
       <NameSurrogate>1</NameSurrogate>
       <Primary>1</Primary>
       <UnderlyingIndexName>PRIMARY</UnderlyingIndexName>
     </key>
-    <column id="505" parent="307" name="id">
+    <column id="533" parent="307" name="id">
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="506" parent="307" name="diagnosis_type">
+    <column id="534" parent="307" name="diagnosis_type">
       <Position>2</Position>
       <StoredType>varchar(1000)|0s</StoredType>
     </column>
-    <column id="507" parent="307" name="code">
+    <column id="535" parent="307" name="code">
       <NotNull>1</NotNull>
       <Position>3</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <column id="508" parent="307" name="ordering">
+    <column id="536" parent="307" name="ordering">
       <Position>4</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <index id="509" parent="307" name="PRIMARY">
+    <index id="537" parent="307" name="PRIMARY">
       <ColNames>id</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <key id="510" parent="307" name="PRIMARY">
+    <key id="538" parent="307" name="PRIMARY">
       <NameSurrogate>1</NameSurrogate>
       <Primary>1</Primary>
       <UnderlyingIndexName>PRIMARY</UnderlyingIndexName>
     </key>
-    <column id="511" parent="308" name="id">
+    <column id="539" parent="308" name="id">
       <AutoIncrement>64031</AutoIncrement>
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="512" parent="308" name="summary_date">
+    <column id="540" parent="308" name="summary_date">
       <NotNull>1</NotNull>
       <Position>2</Position>
       <StoredType>date|0s</StoredType>
     </column>
-    <column id="513" parent="308" name="practice_id">
+    <column id="541" parent="308" name="practice_id">
       <Position>3</Position>
       <StoredType>varchar(200)|0s</StoredType>
     </column>
-    <column id="514" parent="308" name="physician_id">
+    <column id="542" parent="308" name="physician_id">
       <Position>4</Position>
       <StoredType>varchar(200)|0s</StoredType>
     </column>
-    <column id="515" parent="308" name="insurance_type">
+    <column id="543" parent="308" name="insurance_type">
       <Position>5</Position>
       <StoredType>varchar(100)|0s</StoredType>
     </column>
-    <column id="516" parent="308" name="total_patients">
+    <column id="544" parent="308" name="total_patients">
       <DefaultExpression>0</DefaultExpression>
       <Position>6</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="517" parent="308" name="registered_count">
+    <column id="545" parent="308" name="registered_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>7</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="518" parent="308" name="eligible_count">
+    <column id="546" parent="308" name="eligible_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>8</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="519" parent="308" name="engaged_count">
+    <column id="547" parent="308" name="engaged_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>9</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="520" parent="308" name="not_interested_count">
+    <column id="548" parent="308" name="not_interested_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>10</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="521" parent="308" name="waiting_for_call_count">
+    <column id="549" parent="308" name="waiting_for_call_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>11</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="522" parent="308" name="undecided_count">
+    <column id="550" parent="308" name="undecided_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>12</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="523" parent="308" name="unreachable_count">
+    <column id="551" parent="308" name="unreachable_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>13</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="524" parent="308" name="enrolled_count">
+    <column id="552" parent="308" name="enrolled_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>14</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="525" parent="308" name="cancelled_count">
+    <column id="553" parent="308" name="cancelled_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>15</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="526" parent="308" name="active_count">
+    <column id="554" parent="308" name="active_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>16</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="527" parent="308" name="unenrolled_count">
+    <column id="555" parent="308" name="unenrolled_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>17</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="528" parent="308" name="shipped_devices_count">
+    <column id="556" parent="308" name="shipped_devices_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>18</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="529" parent="308" name="unreachable_de_count">
+    <column id="557" parent="308" name="unreachable_de_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>19</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="530" parent="308" name="unreachable_return_count">
+    <column id="558" parent="308" name="unreachable_return_count">
       <DefaultExpression>0</DefaultExpression>
       <Position>20</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="531" parent="308" name="created_at">
+    <column id="559" parent="308" name="created_at">
       <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
       <Position>21</Position>
       <StoredType>timestamp|0s</StoredType>
     </column>
-    <column id="532" parent="308" name="updated_at">
+    <column id="560" parent="308" name="updated_at">
       <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
       <OnUpdate>CURRENT_TIMESTAMP</OnUpdate>
       <Position>22</Position>
       <StoredType>timestamp|0s</StoredType>
     </column>
-    <index id="533" parent="308" name="PRIMARY">
+    <index id="561" parent="308" name="PRIMARY">
       <ColNames>id</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <index id="534" parent="308" name="idx_summary_date">
+    <index id="562" parent="308" name="idx_summary_date">
       <ColNames>summary_date</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="535" parent="308" name="idx_practice_id">
+    <index id="563" parent="308" name="idx_practice_id">
       <ColNames>practice_id</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="536" parent="308" name="idx_physician_id">
+    <index id="564" parent="308" name="idx_physician_id">
       <ColNames>physician_id</ColNames>
       <Type>btree</Type>
     </index>
-    <key id="537" parent="308" name="PRIMARY">
+    <key id="565" parent="308" name="PRIMARY">
       <NameSurrogate>1</NameSurrogate>
       <Primary>1</Primary>
       <UnderlyingIndexName>PRIMARY</UnderlyingIndexName>
     </key>
-    <column id="538" parent="309" name="sub">
+    <column id="566" parent="309" name="sub">
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StoredType>varchar(200)|0s</StoredType>
     </column>
-    <column id="539" parent="309" name="modules">
+    <column id="567" parent="309" name="modules">
       <DefaultExpression>&apos;RPM&apos;</DefaultExpression>
       <Position>2</Position>
       <StoredType>varchar(50)|0s</StoredType>
     </column>
-    <column id="540" parent="309" name="zohoid">
+    <column id="568" parent="309" name="zohoid">
       <Position>3</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <column id="541" parent="309" name="firstName">
+    <column id="569" parent="309" name="firstName">
       <Position>4</Position>
       <StoredType>varchar(200)|0s</StoredType>
     </column>
-    <column id="542" parent="309" name="lastName">
+    <column id="570" parent="309" name="lastName">
       <Position>5</Position>
       <StoredType>varchar(200)|0s</StoredType>
     </column>
-    <column id="543" parent="309" name="email">
+    <column id="571" parent="309" name="email">
       <Position>6</Position>
       <StoredType>varchar(200)|0s</StoredType>
     </column>
-    <column id="544" parent="309" name="gender">
+    <column id="572" parent="309" name="gender">
       <Position>7</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <column id="545" parent="309" name="phone_number">
+    <column id="573" parent="309" name="phone_number">
       <Position>8</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <column id="546" parent="309" name="phone_mobile">
+    <column id="574" parent="309" name="phone_mobile">
       <DefaultExpression>0</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>9</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="547" parent="309" name="address">
+    <column id="575" parent="309" name="address">
       <Position>10</Position>
       <StoredType>longtext|0s</StoredType>
     </column>
-    <column id="548" parent="309" name="mrn">
+    <column id="576" parent="309" name="mrn">
       <Position>11</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="549" parent="309" name="mrn1">
+    <column id="577" parent="309" name="mrn1">
       <Position>12</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="550" parent="309" name="home_address1">
+    <column id="578" parent="309" name="home_address1">
       <Position>13</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="551" parent="309" name="home_city">
+    <column id="579" parent="309" name="home_city">
       <Position>14</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="552" parent="309" name="home_state">
+    <column id="580" parent="309" name="home_state">
       <Position>15</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="553" parent="309" name="home_pin">
+    <column id="581" parent="309" name="home_pin">
       <Position>16</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="554" parent="309" name="pr_office_address1">
+    <column id="582" parent="309" name="pr_office_address1">
       <Position>17</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="555" parent="309" name="primary_office_city">
+    <column id="583" parent="309" name="primary_office_city">
       <Position>18</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="556" parent="309" name="primary_office_state">
+    <column id="584" parent="309" name="primary_office_state">
       <Position>19</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="557" parent="309" name="primary_office_pin">
+    <column id="585" parent="309" name="primary_office_pin">
       <Position>20</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="558" parent="309" name="phoneNoSms">
+    <column id="586" parent="309" name="phoneNoSms">
       <Position>21</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <column id="559" parent="309" name="sms_mobile">
+    <column id="587" parent="309" name="sms_mobile">
       <DefaultExpression>0</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>22</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="560" parent="309" name="isSmsAllowed">
+    <column id="588" parent="309" name="isSmsAllowed">
       <Position>23</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="561" parent="309" name="isremainder">
+    <column id="589" parent="309" name="isremainder">
       <DefaultExpression>0</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>24</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="562" parent="309" name="remainderTime">
+    <column id="590" parent="309" name="remainderTime">
       <Comment>1.	10AM
 2.	02PM
 3.	Both Time</Comment>
@@ -2306,19 +2446,19 @@ primary_diagnosis</ColNames>
       <Position>25</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="563" parent="309" name="readingWelldone">
+    <column id="591" parent="309" name="readingWelldone">
       <DefaultExpression>0</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>26</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="564" parent="309" name="readingLink">
+    <column id="592" parent="309" name="readingLink">
       <DefaultExpression>0</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>27</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="565" parent="309" name="readingLinkValid">
+    <column id="593" parent="309" name="readingLinkValid">
       <Comment>0.	Non-Validated
 1.	Validated (DOB)
 2.	Validated (OTP)</Comment>
@@ -2327,582 +2467,582 @@ primary_diagnosis</ColNames>
       <Position>28</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="566" parent="309" name="p_timezone">
+    <column id="594" parent="309" name="p_timezone">
       <DefaultExpression>&apos;PST&apos;</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>29</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <column id="567" parent="309" name="p_language">
+    <column id="595" parent="309" name="p_language">
       <DefaultExpression>&apos;en-US&apos;</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>30</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="568" parent="309" name="title">
+    <column id="596" parent="309" name="title">
       <Position>31</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="569" parent="309" name="specialty">
+    <column id="597" parent="309" name="specialty">
       <Position>32</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="570" parent="309" name="additional_info">
+    <column id="598" parent="309" name="additional_info">
       <Position>33</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="571" parent="309" name="country">
+    <column id="599" parent="309" name="country">
       <Position>34</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="572" parent="309" name="providerid1">
+    <column id="600" parent="309" name="providerid1">
       <Position>35</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="573" parent="309" name="providerid2">
+    <column id="601" parent="309" name="providerid2">
       <Position>36</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="574" parent="309" name="devicetoken">
+    <column id="602" parent="309" name="devicetoken">
       <Position>37</Position>
       <StoredType>longtext|0s</StoredType>
     </column>
-    <column id="575" parent="309" name="assign">
+    <column id="603" parent="309" name="assign">
       <Position>38</Position>
       <StoredType>longtext|0s</StoredType>
     </column>
-    <column id="576" parent="309" name="consent">
+    <column id="604" parent="309" name="consent">
       <Position>39</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="577" parent="309" name="isOnline">
+    <column id="605" parent="309" name="isOnline">
       <Position>40</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="578" parent="309" name="enrollDate">
+    <column id="606" parent="309" name="enrollDate">
       <Position>41</Position>
       <StoredType>datetime|0s</StoredType>
     </column>
-    <column id="579" parent="309" name="consentDate">
+    <column id="607" parent="309" name="consentDate">
       <Position>42</Position>
       <StoredType>datetime|0s</StoredType>
     </column>
-    <column id="580" parent="309" name="deviceEducationDate">
+    <column id="608" parent="309" name="deviceEducationDate">
       <Position>43</Position>
       <StoredType>datetime|0s</StoredType>
     </column>
-    <column id="581" parent="309" name="dataTransmissionDate">
+    <column id="609" parent="309" name="dataTransmissionDate">
       <Position>44</Position>
       <StoredType>datetime|0s</StoredType>
     </column>
-    <column id="582" parent="309" name="reviewComplete">
+    <column id="610" parent="309" name="reviewComplete">
       <Position>45</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="583" parent="309" name="rpmReviewDuration">
+    <column id="611" parent="309" name="rpmReviewDuration">
       <Position>46</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="584" parent="309" name="height">
+    <column id="612" parent="309" name="height">
       <Position>47</Position>
       <StoredType>double|0s</StoredType>
     </column>
-    <column id="585" parent="309" name="note">
+    <column id="613" parent="309" name="note">
       <Position>48</Position>
       <StoredType>varchar(1000)|0s</StoredType>
     </column>
-    <column id="586" parent="309" name="currentMedication">
+    <column id="614" parent="309" name="currentMedication">
       <Position>49</Position>
       <StoredType>text|0s</StoredType>
     </column>
-    <column id="587" parent="309" name="isNoteAlert">
+    <column id="615" parent="309" name="isNoteAlert">
       <DefaultExpression>0</DefaultExpression>
       <Position>50</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="588" parent="309" name="facetime">
+    <column id="616" parent="309" name="facetime">
       <Position>51</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="589" parent="309" name="enabled">
+    <column id="617" parent="309" name="enabled">
       <Position>52</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <column id="590" parent="309" name="is_eligibled">
+    <column id="618" parent="309" name="is_eligibled">
       <DefaultExpression>0</DefaultExpression>
       <Position>53</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="591" parent="309" name="is_part_b">
+    <column id="619" parent="309" name="is_part_b">
       <DefaultExpression>0</DefaultExpression>
       <Position>54</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="592" parent="309" name="is_ppo">
+    <column id="620" parent="309" name="is_ppo">
       <DefaultExpression>0</DefaultExpression>
       <Position>55</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="593" parent="309" name="is_msp">
+    <column id="621" parent="309" name="is_msp">
       <DefaultExpression>0</DefaultExpression>
       <Position>56</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="594" parent="309" name="is_hmo">
+    <column id="622" parent="309" name="is_hmo">
       <DefaultExpression>0</DefaultExpression>
       <Position>57</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="595" parent="309" name="hmoname">
+    <column id="623" parent="309" name="hmoname">
       <Position>58</Position>
       <StoredType>varchar(500)|0s</StoredType>
     </column>
-    <column id="596" parent="309" name="pponame">
+    <column id="624" parent="309" name="pponame">
       <Position>59</Position>
       <StoredType>varchar(500)|0s</StoredType>
     </column>
-    <column id="597" parent="309" name="mspname">
+    <column id="625" parent="309" name="mspname">
       <Position>60</Position>
       <StoredType>varchar(500)|0s</StoredType>
     </column>
-    <column id="598" parent="309" name="is_secondary_ins">
+    <column id="626" parent="309" name="is_secondary_ins">
       <DefaultExpression>0</DefaultExpression>
       <Position>61</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="599" parent="309" name="is_save_primary">
+    <column id="627" parent="309" name="is_save_primary">
       <DefaultExpression>0</DefaultExpression>
       <Position>62</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="600" parent="309" name="is_save_secondary">
+    <column id="628" parent="309" name="is_save_secondary">
       <DefaultExpression>0</DefaultExpression>
       <Position>63</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="601" parent="309" name="primary_payername">
+    <column id="629" parent="309" name="primary_payername">
       <Position>64</Position>
       <StoredType>varchar(500)|0s</StoredType>
     </column>
-    <column id="602" parent="309" name="secondary_payername">
+    <column id="630" parent="309" name="secondary_payername">
       <Position>65</Position>
       <StoredType>varchar(500)|0s</StoredType>
     </column>
-    <column id="603" parent="309" name="primary_coPay">
+    <column id="631" parent="309" name="primary_coPay">
       <Position>66</Position>
       <StoredType>varchar(50)|0s</StoredType>
     </column>
-    <column id="604" parent="309" name="secondary_coPay">
+    <column id="632" parent="309" name="secondary_coPay">
       <Position>67</Position>
       <StoredType>varchar(50)|0s</StoredType>
     </column>
-    <column id="605" parent="309" name="lace_risk">
+    <column id="633" parent="309" name="lace_risk">
       <DefaultExpression>&apos;&apos;</DefaultExpression>
       <Position>68</Position>
       <StoredType>varchar(10)|0s</StoredType>
     </column>
-    <column id="606" parent="309" name="ascvd_risk">
+    <column id="634" parent="309" name="ascvd_risk">
       <DefaultExpression>&apos;&apos;</DefaultExpression>
       <Position>69</Position>
       <StoredType>varchar(10)|0s</StoredType>
     </column>
-    <column id="607" parent="309" name="stroke_risk">
+    <column id="635" parent="309" name="stroke_risk">
       <DefaultExpression>&apos;&apos;</DefaultExpression>
       <Position>70</Position>
       <StoredType>varchar(10)|0s</StoredType>
     </column>
-    <column id="608" parent="309" name="register_status">
+    <column id="636" parent="309" name="register_status">
       <NotNull>1</NotNull>
       <Position>71</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="609" parent="309" name="register_comment">
+    <column id="637" parent="309" name="register_comment">
       <Position>72</Position>
       <StoredType>mediumtext|0s</StoredType>
     </column>
-    <column id="610" parent="309" name="register_history">
+    <column id="638" parent="309" name="register_history">
       <Position>73</Position>
       <StoredType>longtext|0s</StoredType>
     </column>
-    <column id="611" parent="309" name="ccm_register_status">
+    <column id="639" parent="309" name="ccm_register_status">
       <NotNull>1</NotNull>
       <Position>74</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="612" parent="309" name="ccm_register_comment">
+    <column id="640" parent="309" name="ccm_register_comment">
       <Position>75</Position>
       <StoredType>mediumtext|0s</StoredType>
     </column>
-    <column id="613" parent="309" name="ccm_register_history">
+    <column id="641" parent="309" name="ccm_register_history">
       <Position>76</Position>
       <StoredType>longtext|0s</StoredType>
     </column>
-    <column id="614" parent="309" name="tcm_register_status">
+    <column id="642" parent="309" name="tcm_register_status">
       <NotNull>1</NotNull>
       <Position>77</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="615" parent="309" name="tcm_register_comment">
+    <column id="643" parent="309" name="tcm_register_comment">
       <Position>78</Position>
       <StoredType>mediumtext|0s</StoredType>
     </column>
-    <column id="616" parent="309" name="tcm_register_history">
+    <column id="644" parent="309" name="tcm_register_history">
       <Position>79</Position>
       <StoredType>longtext|0s</StoredType>
     </column>
-    <column id="617" parent="309" name="mtm_register_status">
+    <column id="645" parent="309" name="mtm_register_status">
       <NotNull>1</NotNull>
       <Position>80</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="618" parent="309" name="mtm_register_comment">
+    <column id="646" parent="309" name="mtm_register_comment">
       <Position>81</Position>
       <StoredType>mediumtext|0s</StoredType>
     </column>
-    <column id="619" parent="309" name="mtm_register_history">
+    <column id="647" parent="309" name="mtm_register_history">
       <Position>82</Position>
       <StoredType>longtext|0s</StoredType>
     </column>
-    <column id="620" parent="309" name="reporting_provider">
+    <column id="648" parent="309" name="reporting_provider">
       <Position>83</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <column id="621" parent="309" name="ai_agents">
+    <column id="649" parent="309" name="ai_agents">
       <Position>84</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <index id="622" parent="309" name="PRIMARY">
+    <index id="650" parent="309" name="PRIMARY">
       <ColNames>sub</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <index id="623" parent="309" name="sub_UNIQUE">
+    <index id="651" parent="309" name="sub_UNIQUE">
       <ColNames>sub</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <index id="624" parent="309" name="idx_patient_enrolldate">
+    <index id="652" parent="309" name="idx_patient_enrolldate">
       <ColNames>enrollDate</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="625" parent="309" name="idx_patient_provider">
+    <index id="653" parent="309" name="idx_patient_provider">
       <ColNames>reporting_provider</ColNames>
       <Type>btree</Type>
     </index>
-    <key id="626" parent="309" name="PRIMARY">
+    <key id="654" parent="309" name="PRIMARY">
       <NameSurrogate>1</NameSurrogate>
       <Primary>1</Primary>
       <UnderlyingIndexName>PRIMARY</UnderlyingIndexName>
     </key>
-    <key id="627" parent="309" name="sub_UNIQUE">
+    <key id="655" parent="309" name="sub_UNIQUE">
       <UnderlyingIndexName>sub_UNIQUE</UnderlyingIndexName>
     </key>
-    <column id="628" parent="310" name="id">
+    <column id="656" parent="310" name="id">
       <AutoIncrement>9566</AutoIncrement>
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="629" parent="310" name="patient_sub">
+    <column id="657" parent="310" name="patient_sub">
       <NotNull>1</NotNull>
       <Position>2</Position>
       <StoredType>varchar(200)|0s</StoredType>
     </column>
-    <column id="630" parent="310" name="reporting_provider">
+    <column id="658" parent="310" name="reporting_provider">
       <Position>3</Position>
       <StoredType>varchar(200)|0s</StoredType>
     </column>
-    <column id="631" parent="310" name="practice_id">
+    <column id="659" parent="310" name="practice_id">
       <Position>4</Position>
       <StoredType>varchar(200)|0s</StoredType>
     </column>
-    <column id="632" parent="310" name="enrollment_period">
+    <column id="660" parent="310" name="enrollment_period">
       <NotNull>1</NotNull>
       <Position>5</Position>
       <StoredType>varchar(50)|0s</StoredType>
     </column>
-    <column id="633" parent="310" name="enrollment_date">
+    <column id="661" parent="310" name="enrollment_date">
       <Position>6</Position>
       <StoredType>datetime|0s</StoredType>
     </column>
-    <column id="634" parent="310" name="primary_insurance_type">
+    <column id="662" parent="310" name="primary_insurance_type">
       <Position>7</Position>
       <StoredType>varchar(200)|0s</StoredType>
     </column>
-    <column id="635" parent="310" name="secondary_insurance_type">
+    <column id="663" parent="310" name="secondary_insurance_type">
       <Position>8</Position>
       <StoredType>varchar(200)|0s</StoredType>
     </column>
-    <column id="636" parent="310" name="created_at">
+    <column id="664" parent="310" name="created_at">
       <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
       <Position>9</Position>
       <StoredType>timestamp|0s</StoredType>
     </column>
-    <column id="637" parent="310" name="updated_at">
+    <column id="665" parent="310" name="updated_at">
       <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
       <OnUpdate>CURRENT_TIMESTAMP</OnUpdate>
       <Position>10</Position>
       <StoredType>timestamp|0s</StoredType>
     </column>
-    <index id="638" parent="310" name="PRIMARY">
+    <index id="666" parent="310" name="PRIMARY">
       <ColNames>id</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <index id="639" parent="310" name="idx_patient_provider">
+    <index id="667" parent="310" name="idx_patient_provider">
       <ColNames>patient_sub
 reporting_provider</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <index id="640" parent="310" name="idx_patient_sub">
+    <index id="668" parent="310" name="idx_patient_sub">
       <ColNames>patient_sub</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="641" parent="310" name="idx_reporting_provider">
+    <index id="669" parent="310" name="idx_reporting_provider">
       <ColNames>reporting_provider</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="642" parent="310" name="idx_practice_id">
+    <index id="670" parent="310" name="idx_practice_id">
       <ColNames>practice_id</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="643" parent="310" name="idx_enrollment_period">
+    <index id="671" parent="310" name="idx_enrollment_period">
       <ColNames>enrollment_period</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="644" parent="310" name="idx_primary_insurance">
+    <index id="672" parent="310" name="idx_primary_insurance">
       <ColNames>primary_insurance_type</ColNames>
       <Type>btree</Type>
     </index>
-    <index id="645" parent="310" name="idx_secondary_insurance">
+    <index id="673" parent="310" name="idx_secondary_insurance">
       <ColNames>secondary_insurance_type</ColNames>
       <Type>btree</Type>
     </index>
-    <key id="646" parent="310" name="PRIMARY">
+    <key id="674" parent="310" name="PRIMARY">
       <NameSurrogate>1</NameSurrogate>
       <Primary>1</Primary>
       <UnderlyingIndexName>PRIMARY</UnderlyingIndexName>
     </key>
-    <key id="647" parent="310" name="idx_patient_provider">
+    <key id="675" parent="310" name="idx_patient_provider">
       <UnderlyingIndexName>idx_patient_provider</UnderlyingIndexName>
     </key>
-    <column id="648" parent="311" name="sub">
+    <column id="676" parent="311" name="sub">
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StoredType>varchar(200)|0s</StoredType>
     </column>
-    <column id="649" parent="311" name="zohoid">
+    <column id="677" parent="311" name="zohoid">
       <Position>2</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <column id="650" parent="311" name="firstName">
+    <column id="678" parent="311" name="firstName">
       <Position>3</Position>
       <StoredType>varchar(200)|0s</StoredType>
     </column>
-    <column id="651" parent="311" name="lastName">
+    <column id="679" parent="311" name="lastName">
       <Position>4</Position>
       <StoredType>varchar(200)|0s</StoredType>
     </column>
-    <column id="652" parent="311" name="email">
+    <column id="680" parent="311" name="email">
       <Position>5</Position>
       <StoredType>varchar(200)|0s</StoredType>
     </column>
-    <column id="653" parent="311" name="gender">
+    <column id="681" parent="311" name="gender">
       <Position>6</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <column id="654" parent="311" name="phone_number">
+    <column id="682" parent="311" name="phone_number">
       <Position>7</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <column id="655" parent="311" name="address">
+    <column id="683" parent="311" name="address">
       <Position>8</Position>
       <StoredType>longtext|0s</StoredType>
     </column>
-    <column id="656" parent="311" name="mrn">
+    <column id="684" parent="311" name="mrn">
       <Position>9</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="657" parent="311" name="mrn1">
+    <column id="685" parent="311" name="mrn1">
       <Position>10</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="658" parent="311" name="home_address1">
+    <column id="686" parent="311" name="home_address1">
       <Position>11</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="659" parent="311" name="home_city">
+    <column id="687" parent="311" name="home_city">
       <Position>12</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="660" parent="311" name="home_state">
+    <column id="688" parent="311" name="home_state">
       <Position>13</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="661" parent="311" name="home_pin">
+    <column id="689" parent="311" name="home_pin">
       <Position>14</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="662" parent="311" name="pr_office_address1">
+    <column id="690" parent="311" name="pr_office_address1">
       <Position>15</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="663" parent="311" name="primary_office_city">
+    <column id="691" parent="311" name="primary_office_city">
       <Position>16</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="664" parent="311" name="primary_office_state">
+    <column id="692" parent="311" name="primary_office_state">
       <Position>17</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="665" parent="311" name="primary_office_pin">
+    <column id="693" parent="311" name="primary_office_pin">
       <Position>18</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="666" parent="311" name="phoneNoSms">
+    <column id="694" parent="311" name="phoneNoSms">
       <Position>19</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <column id="667" parent="311" name="isSmsAllowed">
+    <column id="695" parent="311" name="isSmsAllowed">
       <Position>20</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="668" parent="311" name="p_timezone">
+    <column id="696" parent="311" name="p_timezone">
       <DefaultExpression>&apos;PST&apos;</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>21</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <column id="669" parent="311" name="p_language">
+    <column id="697" parent="311" name="p_language">
       <DefaultExpression>&apos;en-US&apos;</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>22</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="670" parent="311" name="title">
+    <column id="698" parent="311" name="title">
       <Position>23</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="671" parent="311" name="specialty">
+    <column id="699" parent="311" name="specialty">
       <Position>24</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="672" parent="311" name="additional_info">
+    <column id="700" parent="311" name="additional_info">
       <Position>25</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="673" parent="311" name="country">
+    <column id="701" parent="311" name="country">
       <Position>26</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="674" parent="311" name="providerid1">
+    <column id="702" parent="311" name="providerid1">
       <Position>27</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="675" parent="311" name="providerid2">
+    <column id="703" parent="311" name="providerid2">
       <Position>28</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="676" parent="311" name="devicetoken">
+    <column id="704" parent="311" name="devicetoken">
       <Position>29</Position>
       <StoredType>longtext|0s</StoredType>
     </column>
-    <column id="677" parent="311" name="assign">
+    <column id="705" parent="311" name="assign">
       <Position>30</Position>
       <StoredType>longtext|0s</StoredType>
     </column>
-    <column id="678" parent="311" name="consent">
+    <column id="706" parent="311" name="consent">
       <Position>31</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="679" parent="311" name="isOnline">
+    <column id="707" parent="311" name="isOnline">
       <Position>32</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="680" parent="311" name="enrollDate">
+    <column id="708" parent="311" name="enrollDate">
       <Position>33</Position>
       <StoredType>datetime|0s</StoredType>
     </column>
-    <column id="681" parent="311" name="consentDate">
+    <column id="709" parent="311" name="consentDate">
       <Position>34</Position>
       <StoredType>datetime|0s</StoredType>
     </column>
-    <column id="682" parent="311" name="deviceEducationDate">
+    <column id="710" parent="311" name="deviceEducationDate">
       <Position>35</Position>
       <StoredType>datetime|0s</StoredType>
     </column>
-    <column id="683" parent="311" name="dataTransmissionDate">
+    <column id="711" parent="311" name="dataTransmissionDate">
       <Position>36</Position>
       <StoredType>datetime|0s</StoredType>
     </column>
-    <column id="684" parent="311" name="reviewComplete">
+    <column id="712" parent="311" name="reviewComplete">
       <Position>37</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="685" parent="311" name="rpmReviewDuration">
+    <column id="713" parent="311" name="rpmReviewDuration">
       <Position>38</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="686" parent="311" name="height">
+    <column id="714" parent="311" name="height">
       <Position>39</Position>
       <StoredType>double|0s</StoredType>
     </column>
-    <column id="687" parent="311" name="note">
+    <column id="715" parent="311" name="note">
       <Position>40</Position>
       <StoredType>varchar(1000)|0s</StoredType>
     </column>
-    <column id="688" parent="311" name="isNoteAlert">
+    <column id="716" parent="311" name="isNoteAlert">
       <DefaultExpression>0</DefaultExpression>
       <Position>41</Position>
       <StoredType>int|0s</StoredType>
     </column>
-    <column id="689" parent="311" name="facetime">
+    <column id="717" parent="311" name="facetime">
       <Position>42</Position>
       <StoredType>varchar(255)|0s</StoredType>
     </column>
-    <column id="690" parent="311" name="enabled">
+    <column id="718" parent="311" name="enabled">
       <Position>43</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <column id="691" parent="311" name="televisit_flag">
+    <column id="719" parent="311" name="televisit_flag">
       <DefaultExpression>0</DefaultExpression>
       <Position>44</Position>
       <StoredType>tinyint|0s</StoredType>
     </column>
-    <column id="692" parent="311" name="televisit_url">
+    <column id="720" parent="311" name="televisit_url">
       <Position>45</Position>
       <StoredType>longtext|0s</StoredType>
     </column>
-    <column id="693" parent="311" name="medicare_codes_assigned">
+    <column id="721" parent="311" name="medicare_codes_assigned">
       <NotNull>1</NotNull>
       <Position>46</Position>
       <StoredType>longtext|0s</StoredType>
     </column>
-    <column id="694" parent="311" name="npi">
+    <column id="722" parent="311" name="npi">
       <Position>47</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <column id="695" parent="311" name="npi_pin">
+    <column id="723" parent="311" name="npi_pin">
       <Position>48</Position>
       <StoredType>varchar(45)|0s</StoredType>
     </column>
-    <index id="696" parent="311" name="PRIMARY">
+    <index id="724" parent="311" name="PRIMARY">
       <ColNames>sub</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <index id="697" parent="311" name="sub_UNIQUE">
+    <index id="725" parent="311" name="sub_UNIQUE">
       <ColNames>sub</ColNames>
       <Type>btree</Type>
       <Unique>1</Unique>
     </index>
-    <key id="698" parent="311" name="PRIMARY">
+    <key id="726" parent="311" name="PRIMARY">
       <NameSurrogate>1</NameSurrogate>
       <Primary>1</Primary>
       <UnderlyingIndexName>PRIMARY</UnderlyingIndexName>
     </key>
-    <key id="699" parent="311" name="sub_UNIQUE">
+    <key id="727" parent="311" name="sub_UNIQUE">
       <UnderlyingIndexName>sub_UNIQUE</UnderlyingIndexName>
     </key>
   </database-model>
