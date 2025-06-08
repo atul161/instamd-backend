@@ -32,4 +32,29 @@ export class ClinicalMetricsController {
       return await this.clinicalService.getClinicalMetrics(practiceId,period,startDate,endDate);
     }
 
+    @Get(':practiceId/patients/:metricName')
+    async getPatientsByMetric(
+        @Param('practiceId') practiceId: string,
+        @Param('metricName') metricName: string,
+        @Query('period') period?: string,
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string,
+        @Query('page') page?: number,
+        @Query('limit') limit?: number
+    ) {
+        if (!practiceId) {
+            throw new NotFoundException('Invalid practice ID');
+        }
+
+        return this.clinicalService.getPatientsByMetric(
+            practiceId,
+            metricName,
+            period,
+            startDate,
+            endDate,
+            page || 1,
+            limit || 50
+        );
+    }
+
 }

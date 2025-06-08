@@ -83,4 +83,127 @@ export class ClinicalService {
         }
     }
 
+    /**
+     * Get patients for a specific clinical metric
+     * @param practiceId The practice ID
+     * @param metricName The metric name to get patients for
+     * @param period Optional enrollment period
+     * @param startDate Optional start date
+     * @param endDate Optional end date
+     * @param page Page number for pagination
+     * @param limit Results per page
+     */
+    async getPatientsByMetric(
+        practiceId: string,
+        metricName: string,
+        period?: string,
+        startDate?: string,
+        endDate?: string,
+        page: number = 1,
+        limit: number = 50
+    ): Promise<any> {
+        try {
+            this.logger.log(`Fetching patients for metric ${metricName} in practice: ${practiceId}`);
+
+            // Validate practice ID
+            const practiceConfig = this.databaseService.getPracticeConfig(practiceId);
+            if (!practiceConfig) {
+                throw new NotFoundException(`Practice with ID ${practiceId} not found`);
+            }
+
+            // Get connection
+            const dataSource = await this.databaseService.getConnection(practiceId);
+            const queryRunner = dataSource.createQueryRunner();
+
+            try {
+                // Find the appropriate summary record
+                let summaryQuery = `
+                SELECT id 
+                FROM clinical_metrics_summary
+                WHERE practice_id = ?
+            `;
+
+                const summaryParams: any[] = [practiceId];
+
+                // Add filters
+                if (period) {
+                    summaryQuery += ` AND enrollment_period = ?`;
+                    summaryParams.push(period);
+                }
+
+                if (startDate) {
+                    summaryQuery += ` AND summary_date >= ?`;
+                    summaryParams.push(startDate);
+                }
+
+                if (endDate) {
+                    summaryQuery += ` AND summary_date <= ?`;
+                    summaryParams.push(endDate);
+                }
+
+                // Get most recent summary first
+                summaryQuery += ` ORDER BY summary_date DESC LIMIT 1`;
+
+                const summaryResults = await queryRunner.query(summaryQuery, summaryParams);
+
+                if (!summaryResults || summaryResults.length === 0) {
+                    return {
+                        total_patients: 0,
+                        page,
+                        limit,
+                        total_pages: 0,
+                        patients: []
+                    };
+                }
+
+                const summaryId = summaryResults[0].id;
+
+                // Calculate total for pagination
+                const countQuery = `
+                SELECT COUNT(DISTINCT patient_sub) as total
+                FROM clinical_metrics_patient_details
+                WHERE clinical_metrics_summary_id = ?
+                  AND metric_name = ?
+            `;
+
+                const countResult = await queryRunner.query(countQuery, [summaryId, metricName]);
+                const totalPatients = countResult[0]?.total || 0;
+                const totalPages = Math.ceil(totalPatients / limit);
+
+                // Get patient details with pagination
+                const offset = (page - 1) * limit;
+                const patientsQuery = `
+                SELECT 
+                    d.patient_sub,
+                    d.metric_value,
+                    d.reading_timestamp,
+                    p.firstName,
+                    p.lastName
+                FROM clinical_metrics_patient_details d
+                LEFT JOIN patient p ON d.patient_sub = p.sub
+                WHERE d.clinical_metrics_summary_id = ?
+                  AND d.metric_name = ?
+                GROUP BY d.patient_sub
+                ORDER BY d.patient_sub
+                LIMIT ?, ?
+            `;
+
+                const patients = await queryRunner.query(patientsQuery, [summaryId, metricName, offset, limit]);
+
+                return {
+                    total_patients: totalPatients,
+                    page,
+                    limit,
+                    total_pages: totalPages,
+                    patients
+                };
+            } finally {
+                await queryRunner.release();
+            }
+        } catch (error) {
+            this.logger.error(`Error fetching patients by metric: ${error.message}`);
+            throw error;
+        }
+    }
+
 }
