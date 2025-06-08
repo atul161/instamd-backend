@@ -87,7 +87,7 @@ export class ClinicalMetricsEtlService {
 
                     this.logger.log(`Found ${patients.length} patients for practice ${practiceId} in period ${periodName}`);
 
-                    // Get appropriate date range for this enrollment period
+                    // Get the appropriate date range for this enrollment period
                     const {startDate, endDate} = this.getAppropriateDateRange(periodName);
                     this.logger.log(`Using date range: ${startDate} to ${endDate} for period ${periodName}`);
 
