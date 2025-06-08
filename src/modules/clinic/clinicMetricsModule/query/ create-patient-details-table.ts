@@ -1,4 +1,4 @@
-const createPatientDetailsTable = `CREATE TABLE clinical_metrics_patient_details (
+export const createPatientDetailsTable = `CREATE TABLE clinical_metrics_patient_details (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         clinical_metrics_summary_id INT NOT NULL,
                         patient_sub VARCHAR(200) NOT NULL,

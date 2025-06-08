@@ -37,8 +37,6 @@ export class ClinicalMetricsController {
         @Param('practiceId') practiceId: string,
         @Param('metricName') metricName: string,
         @Query('period') period?: string,
-        @Query('startDate') startDate?: string,
-        @Query('endDate') endDate?: string,
         @Query('page') page?: number,
         @Query('limit') limit?: number
     ) {
@@ -50,8 +48,6 @@ export class ClinicalMetricsController {
             practiceId,
             metricName,
             period,
-            startDate,
-            endDate,
             page || 1,
             limit || 50
         );

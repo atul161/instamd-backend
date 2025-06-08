@@ -83,22 +83,10 @@ export class ClinicalService {
         }
     }
 
-    /**
-     * Get patients for a specific clinical metric
-     * @param practiceId The practice ID
-     * @param metricName The metric name to get patients for
-     * @param period Optional enrollment period
-     * @param startDate Optional start date
-     * @param endDate Optional end date
-     * @param page Page number for pagination
-     * @param limit Results per page
-     */
     async getPatientsByMetric(
         practiceId: string,
         metricName: string,
         period?: string,
-        startDate?: string,
-        endDate?: string,
         page: number = 1,
         limit: number = 50
     ): Promise<any> {
@@ -118,10 +106,10 @@ export class ClinicalService {
             try {
                 // Find the appropriate summary record
                 let summaryQuery = `
-                SELECT id 
-                FROM clinical_metrics_summary
-                WHERE practice_id = ?
-            `;
+            SELECT id 
+            FROM clinical_metrics_summary
+            WHERE practice_id = ?
+        `;
 
                 const summaryParams: any[] = [practiceId];
 
@@ -129,16 +117,6 @@ export class ClinicalService {
                 if (period) {
                     summaryQuery += ` AND enrollment_period = ?`;
                     summaryParams.push(period);
-                }
-
-                if (startDate) {
-                    summaryQuery += ` AND summary_date >= ?`;
-                    summaryParams.push(startDate);
-                }
-
-                if (endDate) {
-                    summaryQuery += ` AND summary_date <= ?`;
-                    summaryParams.push(endDate);
                 }
 
                 // Get most recent summary first
@@ -160,11 +138,11 @@ export class ClinicalService {
 
                 // Calculate total for pagination
                 const countQuery = `
-                SELECT COUNT(DISTINCT patient_sub) as total
-                FROM clinical_metrics_patient_details
-                WHERE clinical_metrics_summary_id = ?
-                  AND metric_name = ?
-            `;
+            SELECT COUNT(DISTINCT patient_sub) as total
+            FROM clinical_metrics_patient_details
+            WHERE clinical_metrics_summary_id = ?
+              AND metric_name = ?
+        `;
 
                 const countResult = await queryRunner.query(countQuery, [summaryId, metricName]);
                 const totalPatients = countResult[0]?.total || 0;
@@ -173,22 +151,28 @@ export class ClinicalService {
                 // Get patient details with pagination
                 const offset = (page - 1) * limit;
                 const patientsQuery = `
-                SELECT 
-                    d.patient_sub,
-                    d.metric_value,
-                    d.reading_timestamp,
-                    p.firstName,
-                    p.lastName
-                FROM clinical_metrics_patient_details d
-                LEFT JOIN patient p ON d.patient_sub = p.sub
-                WHERE d.clinical_metrics_summary_id = ?
-                  AND d.metric_name = ?
-                GROUP BY d.patient_sub
-                ORDER BY d.patient_sub
-                LIMIT ?, ?
-            `;
+            SELECT 
+                d.patient_sub,
+                d.metric_value,
+                d.reading_timestamp,
+                p.firstName,
+                p.lastName
+            FROM clinical_metrics_patient_details d
+            LEFT JOIN patient p ON Trim(d.patient_sub) = TRIM(replace(p.sub, '-', '_'))
+            WHERE d.clinical_metrics_summary_id = ?
+              AND d.metric_name = ?
+            GROUP BY d.patient_sub
+            ORDER BY d.patient_sub
+            LIMIT ?, ?
+        `;
 
-                const patients = await queryRunner.query(patientsQuery, [summaryId, metricName, offset, limit]);
+                // Convert offset and limit to numbers to ensure they're treated correctly
+                const patients = await queryRunner.query(patientsQuery, [
+                    summaryId,
+                    metricName,
+                    Number(offset),
+                    Number(limit)
+                ]);
 
                 return {
                     total_patients: totalPatients,
