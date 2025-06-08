@@ -1,4 +1,6 @@
+// clinical-metrics.interface.ts (updated)
 
+// Keep existing interfaces unchanged
 export interface DeviceReading {
     id: number;
     patient_sub: string;
@@ -98,4 +100,109 @@ export interface AlertMetrics {
     critical_alerts_percent: number;
     escalations_count: number;
     escalations_percent: number;
+}
+
+// Add new interfaces for patient details
+
+export interface PatientMetricDetail {
+    patient_sub: string;
+    metric_value?: number;
+    reading_timestamp?: Date;
+}
+
+// Interface for BP patient details
+export interface BpPatientDetails {
+    bp_readings: PatientMetricDetail[];
+    bp_abnormal: PatientMetricDetail[];
+    bp_arrhythmia: PatientMetricDetail[];
+    bp_normal: PatientMetricDetail[];
+    bp_sys_gt_130_dia_gt_80: PatientMetricDetail[];
+    bp_sys_gt_140_dia_gt_80: PatientMetricDetail[];
+    bp_sys_gt_150_dia_gt_80: PatientMetricDetail[];
+    bp_sys_gt_160_dia_gt_80: PatientMetricDetail[];
+    bp_sys_lt_90_dia_lt_60: PatientMetricDetail[];
+    bp_hr_abnormal: PatientMetricDetail[];
+}
+
+// Interface for oximeter patient details
+export interface OximeterPatientDetails {
+    spo2_readings: PatientMetricDetail[];
+    spo2_90_92: PatientMetricDetail[];
+    spo2_88_89: PatientMetricDetail[];
+    spo2_below_88: PatientMetricDetail[];
+}
+
+// Interface for weight patient details
+export interface WeightPatientDetails {
+    weight_readings: PatientMetricDetail[];
+    weight_gain_4pct: PatientMetricDetail[];
+}
+
+// Interface for glucose patient details
+export interface GlucoseFastingPatientDetails {
+    readings: PatientMetricDetail[];
+    above_130: PatientMetricDetail[];
+    above_160: PatientMetricDetail[];
+    above_180: PatientMetricDetail[];
+    below_70: PatientMetricDetail[];
+    below_54: PatientMetricDetail[];
+}
+
+export interface GlucosePostMealPatientDetails {
+    readings: PatientMetricDetail[];
+    above_180: PatientMetricDetail[];
+    above_200: PatientMetricDetail[];
+}
+
+export interface GlucoseRandomPatientDetails {
+    readings: PatientMetricDetail[];
+    above_200: PatientMetricDetail[];
+    below_70: PatientMetricDetail[];
+}
+
+export interface GlucosePatientDetails {
+    fasting: GlucoseFastingPatientDetails;
+    post_meal: GlucosePostMealPatientDetails;
+    random: GlucoseRandomPatientDetails;
+}
+
+// Interface for alert patient details
+export interface AlertPatientDetails {
+    critical_alerts: PatientMetricDetail[];
+    escalations: PatientMetricDetail[];
+}
+
+// Interface for API response with pagination
+export interface PatientMetricsResponse {
+    total_patients: number;
+    patients: PatientMetricDetail[];
+    page: number;
+    limit: number;
+    total_pages: number;
+}
+
+// Extended interfaces for combined metrics and patient details
+export interface BpMetricsWithPatients {
+    metrics: BpMetrics;
+    patientDetails: BpPatientDetails;
+}
+
+export interface OximeterMetricsWithPatients {
+    metrics: OximeterMetrics;
+    patientDetails: OximeterPatientDetails;
+}
+
+export interface WeightMetricsWithPatients {
+    metrics: WeightMetrics;
+    patientDetails: WeightPatientDetails;
+}
+
+export interface GlucoseMetricsWithPatients {
+    metrics: GlucoseMetrics;
+    patientDetails: GlucosePatientDetails;
+}
+
+export interface AlertMetricsWithPatients {
+    metrics: AlertMetrics;
+    patientDetails: AlertPatientDetails;
 }

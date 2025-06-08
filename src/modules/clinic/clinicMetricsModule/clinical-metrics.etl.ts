@@ -5,14 +5,20 @@ import * as moment from 'moment';
 
 import {
     AlertMetrics,
-    BpMetrics,
+    AlertMetricsWithPatients, AlertPatientDetails,
+    BpMetrics, BpMetricsWithPatients, BpPatientDetails,
     DeviceDataTransmission,
     DeviceReading,
     GlucoseMetrics,
-    OximeterMetrics,
-    WeightMetrics
+    GlucoseMetricsWithPatients, GlucosePatientDetails,
+    OximeterMetrics, OximeterMetricsWithPatients, OximeterPatientDetails, PatientMetricDetail,
+    WeightMetrics,
+    WeightMetricsWithPatients, WeightPatientDetails
 } from "./interface/clinical-metrics.interface";
 import {practiceList} from '../patientEnrollmentModule/interface/enrollment-period.interface';
+import {updateQuery} from "./functions/store-clinical-update-query";
+import {insertQuery} from "./functions/store-clinical-insert-query";
+import {createClinicalSummaryTable} from "./query/clinical-summary-table";
 
 @Injectable()
 export class ClinicalMetricsEtlService {
@@ -97,6 +103,9 @@ export class ClinicalMetricsEtlService {
         try {
             // Ensure the summary table exists
             await this.createClinicalMetricsTableIfNotExists(practiceId);
+
+            // Ensure the patient details table exists
+            await this.createPatientDetailsTableIfNotExists(practiceId);
 
             // Get current date for the summary
             const summaryDate = moment().format('YYYY-MM-DD');
@@ -189,163 +198,7 @@ export class ClinicalMetricsEtlService {
 
                 if (!tableExists) {
                     // Create the table if it doesn't exist - MySQL syntax
-                    await queryRunner.query(`
-                        CREATE TABLE clinical_metrics_summary
-                        (
-                            id                                 INT AUTO_INCREMENT PRIMARY KEY,
-                            summary_date                       DATE         NOT NULL,
-                            practice_id                        VARCHAR(200) NOT NULL,
-                            enrollment_period                  VARCHAR(50)  NOT NULL,
-                            total_patients                     INT           DEFAULT 0,
-
-                            -- Blood Pressure Metrics
-                            bp_total_readings                  INT           DEFAULT 0,
-                            -- todo
-                            bp_patients_count                  INT           DEFAULT 0,
-                            bp_abnormal_count                  INT           DEFAULT 0,
-                            bp_abnormal_percent                DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            bp_abnormal_patients_count         INT           DEFAULT 0,
-                            bp_avg_sys                         DECIMAL(5, 2) DEFAULT 0,
-                            bp_avg_dia                         DECIMAL(5, 2) DEFAULT 0,
-                            bp_avg_hr                          DECIMAL(5, 2) DEFAULT 0,
-                            bp_arrhythmia_count                INT           DEFAULT 0,
-                            bp_arrhythmia_percent              DECIMAL(5, 2) DEFAULT 0,
-                            -- todo 
-                            bp_arrhythmia_patients_count       INT           DEFAULT 0,
-
-                            -- Normal Blood Pressure Metrics
-                            bp_normal_count                    INT           DEFAULT 0,
-                            bp_normal_percent                  DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            bp_normal_patients_count           INT           DEFAULT 0,
-                            bp_normal_avg_sys                  DECIMAL(5, 2) DEFAULT 0,
-                            bp_normal_avg_dia                  DECIMAL(5, 2) DEFAULT 0,
-                            bp_normal_avg_hr                   DECIMAL(5, 2) DEFAULT 0,
-
-                            -- New BP Threshold Metrics
-                            bp_sys_gt_130_dia_gt_80_count      INT           DEFAULT 0,
-                            bp_sys_gt_130_dia_gt_80_percent    DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            bp_sys_gt_130_dia_gt_80_patients   INT           DEFAULT 0,
-                            bp_sys_gt_140_dia_gt_80_count      INT           DEFAULT 0,
-                            bp_sys_gt_140_dia_gt_80_percent    DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            bp_sys_gt_140_dia_gt_80_patients   INT           DEFAULT 0,
-                            bp_sys_gt_150_dia_gt_80_count      INT           DEFAULT 0,
-                            bp_sys_gt_150_dia_gt_80_percent    DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            bp_sys_gt_150_dia_gt_80_patients   INT           DEFAULT 0,
-                            bp_sys_gt_160_dia_gt_80_count      INT           DEFAULT 0,
-                            bp_sys_gt_160_dia_gt_80_percent    DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            bp_sys_gt_160_dia_gt_80_patients   INT           DEFAULT 0,
-                            bp_sys_lt_90_dia_lt_60_count       INT           DEFAULT 0,
-                            bp_sys_lt_90_dia_lt_60_percent     DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            bp_sys_lt_90_dia_lt_60_patients    INT           DEFAULT 0,
-                            bp_hr_abnormal_count               INT           DEFAULT 0,
-                            bp_hr_abnormal_percent             DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            bp_hr_abnormal_patients_count      INT           DEFAULT 0,
-
-                            -- Pulse Oximeter Metrics
-                            spo2_total_readings                INT           DEFAULT 0,
-                            -- todo
-                            spo2_patients_count                INT           DEFAULT 0,
-                            spo2_90_92_count                   INT           DEFAULT 0,
-                            spo2_90_92_percent                 DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            spo2_90_92_patients_count          INT           DEFAULT 0,
-                            spo2_88_89_count                   INT           DEFAULT 0,
-                            spo2_88_89_percent                 DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            spo2_88_89_patients_count          INT           DEFAULT 0,
-                            spo2_below_88_count                INT           DEFAULT 0,
-                            spo2_below_88_percent              DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            spo2_below_88_patients_count       INT           DEFAULT 0,
-
-                            -- Weight Metrics
-                            weight_total_readings              INT           DEFAULT 0,
-                            weight_patients_count              INT           DEFAULT 0,
-                            weight_gain_4pct_count             INT           DEFAULT 0,
-                            weight_gain_4pct_percent           DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            weight_gain_4pct_patients_count    INT           DEFAULT 0,
-
-                            -- Glucose Metrics - Fasting
-                            glucose_fasting_total              INT           DEFAULT 0,
-                            glucose_fasting_patients_count     INT           DEFAULT 0,
-                            glucose_fasting_above_130_count    INT           DEFAULT 0,
-                            glucose_fasting_above_130_percent  DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            glucose_fasting_above_130_patients INT           DEFAULT 0,
-                            glucose_fasting_above_160_count    INT           DEFAULT 0,
-                            glucose_fasting_above_160_percent  DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            glucose_fasting_above_160_patients INT           DEFAULT 0,
-                            glucose_fasting_above_180_count    INT           DEFAULT 0,
-                            glucose_fasting_above_180_percent  DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            glucose_fasting_above_180_patients INT           DEFAULT 0,
-                            glucose_fasting_below_70_count     INT           DEFAULT 0,
-                            glucose_fasting_below_70_percent   DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            glucose_fasting_below_70_patients  INT           DEFAULT 0,
-                            glucose_fasting_below_54_count     INT           DEFAULT 0,
-                            glucose_fasting_below_54_percent   DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            glucose_fasting_below_54_patients  INT           DEFAULT 0,
-
-                            -- Glucose Metrics - Post Meal
-                            glucose_postmeal_total             INT           DEFAULT 0,
-                            -- todo
-                            glucose_postmeal_patients_count    INT           DEFAULT 0,
-                            glucose_postmeal_above_180_count   INT           DEFAULT 0,
-                            glucose_postmeal_above_180_percent DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            glucose_postmeal_above_180_patients INT          DEFAULT 0,
-                            glucose_postmeal_above_200_count   INT           DEFAULT 0,
-                            glucose_postmeal_above_200_percent DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            glucose_postmeal_above_200_patients INT          DEFAULT 0,
-
-                            -- Glucose Metrics - Random
-                            glucose_random_total               INT           DEFAULT 0,
-                            -- todo
-                            glucose_random_patients_count      INT           DEFAULT 0,
-                            glucose_random_above_200_count     INT           DEFAULT 0,
-                            glucose_random_above_200_percent   DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            glucose_random_above_200_patients  INT           DEFAULT 0,
-                            glucose_random_below_70_count      INT           DEFAULT 0,
-                            glucose_random_below_70_percent    DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            glucose_random_below_70_patients   INT           DEFAULT 0,
-
-                            -- Alert Metrics
-                            critical_alerts_count              INT           DEFAULT 0,
-                            critical_alerts_percent            DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            critical_alerts_patients_count     INT           DEFAULT 0,
-                            escalations_count                  INT           DEFAULT 0,
-                            escalations_percent                DECIMAL(5, 2) DEFAULT 0,
-                            -- todo
-                            escalations_patients_count         INT           DEFAULT 0,
-
-                            created_at                         TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
-                            updated_at                         TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-                            INDEX idx_practice_id (practice_id),
-                            INDEX idx_summary_date (summary_date),
-                            INDEX idx_enrollment_period (enrollment_period),
-                            UNIQUE INDEX idx_practice_period_date (practice_id, enrollment_period, summary_date)
-                        ) ENGINE = InnoDB
-                          DEFAULT CHARSET = utf8mb4
-                          COLLATE = utf8mb4_unicode_ci;
-                    `);
-
+                    await queryRunner.query(createClinicalSummaryTable);
                     this.logger.log("Created clinical_metrics_summary table");
                 } else {
                     this.logger.log("clinical_metrics_summary table already exists");
@@ -359,6 +212,33 @@ export class ClinicalMetricsEtlService {
             throw error;
         }
     }
+
+    private async createPatientDetailsTableIfNotExists(practiceId: string): Promise<void> {
+        try {
+            const dataSource = await this.databaseService.getConnection(practiceId);
+            const queryRunner = dataSource.createQueryRunner();
+
+            try {
+                // Check if the table exists
+                const tableExists = await queryRunner.hasTable('clinical_metrics_patient_details');
+
+                if (!tableExists) {
+                    // Create the table if it doesn't exist
+                    await queryRunner.query(createPatientDetailsTable);
+                    this.logger.log("Created clinical_metrics_patient_details table");
+                } else {
+                    this.logger.log("clinical_metrics_patient_details table already exists");
+                }
+            } finally {
+                // Release the query runner
+                await queryRunner.release();
+            }
+        } catch (error) {
+            this.logger.error(`Error creating patient details table: ${error.message}`);
+            throw error;
+        }
+    }
+
 
     /**
      * Get distinct practices from the database
@@ -572,37 +452,50 @@ export class ClinicalMetricsEtlService {
         return result;
     }
 
-    /**
-     * Process blood pressure readings to calculate summary metrics
-     */
-    private processBloodPressureData(readings: DeviceReading[] , practiceId: string): BpMetrics {
+
+
+    private processBloodPressureData(readings: DeviceReading[], practiceId: string): BpMetricsWithPatients {
         if (!readings || readings.length === 0) {
             return {
-                total: 0,
-                abnormal_count: 0,
-                abnormal_percent: 0,
-                avg_sys: 0,
-                avg_dia: 0,
-                avg_hr: 0,
-                arrhythmia_count: 0,
-                arrhythmia_percent: 0,
-                normal_count: 0,
-                normal_percent: 0,
-                normal_avg_sys: 0,
-                normal_avg_dia: 0,
-                normal_avg_hr: 0,
-                sys_gt_130_dia_gt_80_count: 0,
-                sys_gt_130_dia_gt_80_percent: 0,
-                sys_gt_140_dia_gt_80_count: 0,
-                sys_gt_140_dia_gt_80_percent: 0,
-                sys_gt_150_dia_gt_80_count: 0,
-                sys_gt_150_dia_gt_80_percent: 0,
-                sys_gt_160_dia_gt_80_count: 0,
-                sys_gt_160_dia_gt_80_percent: 0,
-                sys_lt_90_dia_lt_60_count: 0,
-                sys_lt_90_dia_lt_60_percent: 0,
-                hr_abnormal_count: 0,
-                hr_abnormal_percent: 0
+                metrics: {
+                    total: 0,
+                    abnormal_count: 0,
+                    abnormal_percent: 0,
+                    avg_sys: 0,
+                    avg_dia: 0,
+                    avg_hr: 0,
+                    arrhythmia_count: 0,
+                    arrhythmia_percent: 0,
+                    normal_count: 0,
+                    normal_percent: 0,
+                    normal_avg_sys: 0,
+                    normal_avg_dia: 0,
+                    normal_avg_hr: 0,
+                    sys_gt_130_dia_gt_80_count: 0,
+                    sys_gt_130_dia_gt_80_percent: 0,
+                    sys_gt_140_dia_gt_80_count: 0,
+                    sys_gt_140_dia_gt_80_percent: 0,
+                    sys_gt_150_dia_gt_80_count: 0,
+                    sys_gt_150_dia_gt_80_percent: 0,
+                    sys_gt_160_dia_gt_80_count: 0,
+                    sys_gt_160_dia_gt_80_percent: 0,
+                    sys_lt_90_dia_lt_60_count: 0,
+                    sys_lt_90_dia_lt_60_percent: 0,
+                    hr_abnormal_count: 0,
+                    hr_abnormal_percent: 0
+                },
+                patientDetails: {
+                    bp_readings: [],
+                    bp_abnormal: [],
+                    bp_arrhythmia: [],
+                    bp_normal: [],
+                    bp_sys_gt_130_dia_gt_80: [],
+                    bp_sys_gt_140_dia_gt_80: [],
+                    bp_sys_gt_150_dia_gt_80: [],
+                    bp_sys_gt_160_dia_gt_80: [],
+                    bp_sys_lt_90_dia_lt_60: [],
+                    bp_hr_abnormal: []
+                }
             };
         }
 
@@ -617,6 +510,34 @@ export class ClinicalMetricsEtlService {
         let sysGt160DiaGt80Count = 0;
         let sysLt90DiaLt60Count = 0;
         let hrAbnormalCount = 0;
+
+        // Track patient details for each category
+        const patientDetails: BpPatientDetails = {
+            bp_readings: [],
+            bp_abnormal: [],
+            bp_arrhythmia: [],
+            bp_normal: [],
+            bp_sys_gt_130_dia_gt_80: [],
+            bp_sys_gt_140_dia_gt_80: [],
+            bp_sys_gt_150_dia_gt_80: [],
+            bp_sys_gt_160_dia_gt_80: [],
+            bp_sys_lt_90_dia_lt_60: [],
+            bp_hr_abnormal: []
+        };
+
+        // Sets to track unique patient IDs for counting
+        const uniquePatients = {
+            readings: new Set<string>(),
+            abnormal: new Set<string>(),
+            arrhythmia: new Set<string>(),
+            normal: new Set<string>(),
+            sysGt130DiaGt80: new Set<string>(),
+            sysGt140DiaGt80: new Set<string>(),
+            sysGt150DiaGt80: new Set<string>(),
+            sysGt160DiaGt80: new Set<string>(),
+            sysLt90DiaLt60: new Set<string>(),
+            hrAbnormal: new Set<string>()
+        };
 
         const allSysValues: number[] = [];
         const allDiaValues: number[] = [];
@@ -633,6 +554,7 @@ export class ClinicalMetricsEtlService {
 
             try {
                 const metaDict = this.parseBpValue(reading.detailed_value);
+                const patientSub = reading.patient_sub;
 
                 // Extract values
                 const sys = metaDict.sys;
@@ -640,8 +562,23 @@ export class ClinicalMetricsEtlService {
                 const hr = metaDict.hr;
                 const arrhythmia = metaDict.arrhythmia;
 
+                // Track unique patient for readings
+                uniquePatients.readings.add(patientSub);
+
+                // Add to patient details for all readings
+                patientDetails.bp_readings.push({
+                    patient_sub: patientSub,
+                    metric_value: sys, // Store systolic as the primary value
+                    reading_timestamp: reading.timestamp
+                });
+
                 if (arrhythmia === 1) {
                     arrhythmiaCount++;
+                    uniquePatients.arrhythmia.add(patientSub);
+                    patientDetails.bp_arrhythmia.push({
+                        patient_sub: patientSub,
+                        reading_timestamp: reading.timestamp
+                    });
                 }
 
                 // Add to all readings collections
@@ -666,33 +603,81 @@ export class ClinicalMetricsEtlService {
                     normalSysValues.push(sys);
                     normalDiaValues.push(dia);
                     normalHrValues.push(hr);
+                    uniquePatients.normal.add(patientSub);
+                    patientDetails.bp_normal.push({
+                        patient_sub: patientSub,
+                        metric_value: sys,
+                        reading_timestamp: reading.timestamp
+                    });
                 } else {
                     abnormalReadings++;
+                    uniquePatients.abnormal.add(patientSub);
+                    patientDetails.bp_abnormal.push({
+                        patient_sub: patientSub,
+                        metric_value: sys,
+                        reading_timestamp: reading.timestamp
+                    });
                 }
 
-                // Check for new BP threshold conditions
+                // Check for BP threshold conditions
                 if (sys > 130 && dia > 80) {
                     sysGt130DiaGt80Count++;
+                    uniquePatients.sysGt130DiaGt80.add(patientSub);
+                    patientDetails.bp_sys_gt_130_dia_gt_80.push({
+                        patient_sub: patientSub,
+                        metric_value: sys,
+                        reading_timestamp: reading.timestamp
+                    });
                 }
 
                 if (sys > 140 && dia > 80) {
                     sysGt140DiaGt80Count++;
+                    uniquePatients.sysGt140DiaGt80.add(patientSub);
+                    patientDetails.bp_sys_gt_140_dia_gt_80.push({
+                        patient_sub: patientSub,
+                        metric_value: sys,
+                        reading_timestamp: reading.timestamp
+                    });
                 }
 
                 if (sys > 150 && dia > 80) {
                     sysGt150DiaGt80Count++;
+                    uniquePatients.sysGt150DiaGt80.add(patientSub);
+                    patientDetails.bp_sys_gt_150_dia_gt_80.push({
+                        patient_sub: patientSub,
+                        metric_value: sys,
+                        reading_timestamp: reading.timestamp
+                    });
                 }
 
                 if (sys > 160 && dia > 80) {
                     sysGt160DiaGt80Count++;
+                    uniquePatients.sysGt160DiaGt80.add(patientSub);
+                    patientDetails.bp_sys_gt_160_dia_gt_80.push({
+                        patient_sub: patientSub,
+                        metric_value: sys,
+                        reading_timestamp: reading.timestamp
+                    });
                 }
 
                 if (sys < 90 && dia < 60) {
                     sysLt90DiaLt60Count++;
+                    uniquePatients.sysLt90DiaLt60.add(patientSub);
+                    patientDetails.bp_sys_lt_90_dia_lt_60.push({
+                        patient_sub: patientSub,
+                        metric_value: sys,
+                        reading_timestamp: reading.timestamp
+                    });
                 }
 
                 if (hr < 50 || hr > 120) {
                     hrAbnormalCount++;
+                    uniquePatients.hrAbnormal.add(patientSub);
+                    patientDetails.bp_hr_abnormal.push({
+                        patient_sub: patientSub,
+                        metric_value: hr,
+                        reading_timestamp: reading.timestamp
+                    });
                 }
             } catch (error) {
                 this.logger.warn(`Error processing BP reading ${reading.id}: ${error.message}`);
@@ -716,7 +701,7 @@ export class ClinicalMetricsEtlService {
         const normalPercent = totalReadings > 0 ? (normalCount / totalReadings * 100) : 0;
         const arrhythmiaPercent = totalReadings > 0 ? (arrhythmiaCount / totalReadings * 100) : 0;
 
-        // Calculate new BP threshold percentages
+        // Calculate BP threshold percentages
         const sysGt130DiaGt80Percent = totalReadings > 0 ? (sysGt130DiaGt80Count / totalReadings * 100) : 0;
         const sysGt140DiaGt80Percent = totalReadings > 0 ? (sysGt140DiaGt80Count / totalReadings * 100) : 0;
         const sysGt150DiaGt80Percent = totalReadings > 0 ? (sysGt150DiaGt80Count / totalReadings * 100) : 0;
@@ -725,32 +710,35 @@ export class ClinicalMetricsEtlService {
         const hrAbnormalPercent = totalReadings > 0 ? (hrAbnormalCount / totalReadings * 100) : 0;
 
         return {
-            total: totalReadings,
-            abnormal_count: abnormalReadings,
-            abnormal_percent: parseFloat(abnormalPercent.toFixed(2)),
-            avg_sys: parseFloat(avgSys.toFixed(2)),
-            avg_dia: parseFloat(avgDia.toFixed(2)),
-            avg_hr: parseFloat(avgHr.toFixed(2)),
-            arrhythmia_count: arrhythmiaCount,
-            arrhythmia_percent: parseFloat(arrhythmiaPercent.toFixed(2)),
-            normal_count: normalCount,
-            normal_percent: parseFloat(normalPercent.toFixed(2)),
-            normal_avg_sys: parseFloat(normalAvgSys.toFixed(2)),
-            normal_avg_dia: parseFloat(normalAvgDia.toFixed(2)),
-            normal_avg_hr: parseFloat(normalAvgHr.toFixed(2)),
-            // New BP threshold metrics
-            sys_gt_130_dia_gt_80_count: sysGt130DiaGt80Count,
-            sys_gt_130_dia_gt_80_percent: parseFloat(sysGt130DiaGt80Percent.toFixed(2)),
-            sys_gt_140_dia_gt_80_count: sysGt140DiaGt80Count,
-            sys_gt_140_dia_gt_80_percent: parseFloat(sysGt140DiaGt80Percent.toFixed(2)),
-            sys_gt_150_dia_gt_80_count: sysGt150DiaGt80Count,
-            sys_gt_150_dia_gt_80_percent: parseFloat(sysGt150DiaGt80Percent.toFixed(2)),
-            sys_gt_160_dia_gt_80_count: sysGt160DiaGt80Count,
-            sys_gt_160_dia_gt_80_percent: parseFloat(sysGt160DiaGt80Percent.toFixed(2)),
-            sys_lt_90_dia_lt_60_count: sysLt90DiaLt60Count,
-            sys_lt_90_dia_lt_60_percent: parseFloat(sysLt90DiaLt60Percent.toFixed(2)),
-            hr_abnormal_count: hrAbnormalCount,
-            hr_abnormal_percent: parseFloat(hrAbnormalPercent.toFixed(2))
+            metrics: {
+                total: totalReadings,
+                abnormal_count: abnormalReadings,
+                abnormal_percent: parseFloat(abnormalPercent.toFixed(2)),
+                avg_sys: parseFloat(avgSys.toFixed(2)),
+                avg_dia: parseFloat(avgDia.toFixed(2)),
+                avg_hr: parseFloat(avgHr.toFixed(2)),
+                arrhythmia_count: arrhythmiaCount,
+                arrhythmia_percent: parseFloat(arrhythmiaPercent.toFixed(2)),
+                normal_count: normalCount,
+                normal_percent: parseFloat(normalPercent.toFixed(2)),
+                normal_avg_sys: parseFloat(normalAvgSys.toFixed(2)),
+                normal_avg_dia: parseFloat(normalAvgDia.toFixed(2)),
+                normal_avg_hr: parseFloat(normalAvgHr.toFixed(2)),
+                // BP threshold metrics
+                sys_gt_130_dia_gt_80_count: sysGt130DiaGt80Count,
+                sys_gt_130_dia_gt_80_percent: parseFloat(sysGt130DiaGt80Percent.toFixed(2)),
+                sys_gt_140_dia_gt_80_count: sysGt140DiaGt80Count,
+                sys_gt_140_dia_gt_80_percent: parseFloat(sysGt140DiaGt80Percent.toFixed(2)),
+                sys_gt_150_dia_gt_80_count: sysGt150DiaGt80Count,
+                sys_gt_150_dia_gt_80_percent: parseFloat(sysGt150DiaGt80Percent.toFixed(2)),
+                sys_gt_160_dia_gt_80_count: sysGt160DiaGt80Count,
+                sys_gt_160_dia_gt_80_percent: parseFloat(sysGt160DiaGt80Percent.toFixed(2)),
+                sys_lt_90_dia_lt_60_count: sysLt90DiaLt60Count,
+                sys_lt_90_dia_lt_60_percent: parseFloat(sysLt90DiaLt60Percent.toFixed(2)),
+                hr_abnormal_count: hrAbnormalCount,
+                hr_abnormal_percent: parseFloat(hrAbnormalPercent.toFixed(2))
+            },
+            patientDetails: patientDetails
         };
     }
 
@@ -779,19 +767,25 @@ export class ClinicalMetricsEtlService {
         return result;
     }
 
-    /**
-     * Process pulse oximeter readings to calculate summary metrics
-     */
-    private processOximeterData(readings: DeviceReading[] , practiceId: string): OximeterMetrics {
+
+    private processOximeterData(readings: DeviceReading[], practiceId: string): OximeterMetricsWithPatients {
         if (!readings || readings.length === 0) {
             return {
-                total: 0,
-                spo2_90_92_count: 0,
-                spo2_90_92_percent: 0,
-                spo2_88_89_count: 0,
-                spo2_88_89_percent: 0,
-                spo2_below_88_count: 0,
-                spo2_below_88_percent: 0
+                metrics: {
+                    total: 0,
+                    spo2_90_92_count: 0,
+                    spo2_90_92_percent: 0,
+                    spo2_88_89_count: 0,
+                    spo2_88_89_percent: 0,
+                    spo2_below_88_count: 0,
+                    spo2_below_88_percent: 0
+                },
+                patientDetails: {
+                    spo2_readings: [],
+                    spo2_90_92: [],
+                    spo2_88_89: [],
+                    spo2_below_88: []
+                }
             };
         }
 
@@ -800,27 +794,70 @@ export class ClinicalMetricsEtlService {
         let spo2_88_89_count = 0;
         let spo2_below_88_count = 0;
 
+        // Track patient details for each category
+        const patientDetails: OximeterPatientDetails = {
+            spo2_readings: [],
+            spo2_90_92: [],
+            spo2_88_89: [],
+            spo2_below_88: []
+        };
+
+        // Sets to track unique patient IDs
+        const uniquePatients = {
+            readings: new Set<string>(),
+            spo2_90_92: new Set<string>(),
+            spo2_88_89: new Set<string>(),
+            spo2_below_88: new Set<string>()
+        };
+
         for (const reading of readings) {
             if (!reading.detailed_value) {
                 continue;
             }
 
             try {
-                // console.log("Before Parsed Value SP02", reading.detailed_value);
                 const metaSpo2 = this.parseSpo2Value(reading.detailed_value);
-                // console.log("After Parsed Value Spo2", metaSpo2);
+                const patientSub = reading.patient_sub;
 
                 const spo2 = metaSpo2.spo2;
                 const pr = metaSpo2.pr;
+
+                // Track unique patient for readings
+                uniquePatients.readings.add(patientSub);
+
+                // Add to patient details for all readings
+                patientDetails.spo2_readings.push({
+                    patient_sub: patientSub,
+                    metric_value: spo2,
+                    reading_timestamp: reading.timestamp
+                });
 
                 if (spo2 > 0) {
                     // Categorize reading
                     if (this.SPO2_RANGES.moderate_low_min <= spo2 && spo2 <= this.SPO2_RANGES.moderate_low_max) {
                         spo2_90_92_count++;
+                        uniquePatients.spo2_90_92.add(patientSub);
+                        patientDetails.spo2_90_92.push({
+                            patient_sub: patientSub,
+                            metric_value: spo2,
+                            reading_timestamp: reading.timestamp
+                        });
                     } else if (this.SPO2_RANGES.low_min <= spo2 && spo2 <= this.SPO2_RANGES.low_max) {
                         spo2_88_89_count++;
+                        uniquePatients.spo2_88_89.add(patientSub);
+                        patientDetails.spo2_88_89.push({
+                            patient_sub: patientSub,
+                            metric_value: spo2,
+                            reading_timestamp: reading.timestamp
+                        });
                     } else if (spo2 < this.SPO2_RANGES.critical_low) {
                         spo2_below_88_count++;
+                        uniquePatients.spo2_below_88.add(patientSub);
+                        patientDetails.spo2_below_88.push({
+                            patient_sub: patientSub,
+                            metric_value: spo2,
+                            reading_timestamp: reading.timestamp
+                        });
                     }
                 }
             } catch (error) {
@@ -835,13 +872,16 @@ export class ClinicalMetricsEtlService {
         const spo2_below_88_percent = totalReadings > 0 ? (spo2_below_88_count / totalReadings * 100) : 0;
 
         return {
-            total: totalReadings,
-            spo2_90_92_count,
-            spo2_90_92_percent: parseFloat(spo2_90_92_percent.toFixed(2)),
-            spo2_88_89_count,
-            spo2_88_89_percent: parseFloat(spo2_88_89_percent.toFixed(2)),
-            spo2_below_88_count,
-            spo2_below_88_percent: parseFloat(spo2_below_88_percent.toFixed(2))
+            metrics: {
+                total: totalReadings,
+                spo2_90_92_count,
+                spo2_90_92_percent: parseFloat(spo2_90_92_percent.toFixed(2)),
+                spo2_88_89_count,
+                spo2_88_89_percent: parseFloat(spo2_88_89_percent.toFixed(2)),
+                spo2_below_88_count,
+                spo2_below_88_percent: parseFloat(spo2_below_88_percent.toFixed(2))
+            },
+            patientDetails: patientDetails
         };
     }
 
@@ -938,20 +978,38 @@ export class ClinicalMetricsEtlService {
     /**
      * Process weight readings to identify significant changes from baseline
      */
-    private async processWeightData(readings: DeviceReading[], patientIds: string[] , practiceId): Promise<WeightMetrics> {
+    private async processWeightData(readings: DeviceReading[], patientIds: string[], practiceId: string): Promise<WeightMetricsWithPatients> {
         if (!readings || readings.length === 0 || !patientIds || patientIds.length === 0) {
             return {
-                total: 0,
-                weight_gain_4pct_count: 0,
-                weight_gain_4pct_percent: 0
+                metrics: {
+                    total: 0,
+                    weight_gain_4pct_count: 0,
+                    weight_gain_4pct_percent: 0
+                },
+                patientDetails: {
+                    weight_readings: [],
+                    weight_gain_4pct: []
+                }
             };
         }
 
         const totalReadings = readings.length;
         let weight_gain_4pct_count = 0;
 
+        // Track patient details for each category
+        const patientDetails: WeightPatientDetails = {
+            weight_readings: [],
+            weight_gain_4pct: []
+        };
+
+        // Sets to track unique patient IDs
+        const uniquePatients = {
+            readings: new Set<string>(),
+            weight_gain_4pct: new Set<string>()
+        };
+
         // Get all patient baselines in one efficient operation
-        const patientBaselines = await this.getPatientWeightBaselines(patientIds , practiceId);
+        const patientBaselines = await this.getPatientWeightBaselines(patientIds, practiceId);
 
         // Group readings by patient
         const patientReadings: Record<string, DeviceReading[]> = {};
@@ -961,6 +1019,15 @@ export class ClinicalMetricsEtlService {
                 patientReadings[patientSub] = [];
             }
             patientReadings[patientSub].push(reading);
+
+            // Track this patient in all readings
+            uniquePatients.readings.add(patientSub);
+
+            // Add to patient details for all readings
+            patientDetails.weight_readings.push({
+                patient_sub: patientSub,
+                reading_timestamp: reading.timestamp
+            });
         }
 
         // Process each patient's readings
@@ -978,9 +1045,7 @@ export class ClinicalMetricsEtlService {
                 }
 
                 try {
-                    // console.log("Before Parsed Value Weight", reading.detailed_value);
                     const metaWeight = this.parseWeightValue(reading.detailed_value);
-                    // console.log("After Parsed Value Weight", metaWeight);
 
                     const weight = metaWeight.weight;
                     const height = metaWeight.height;
@@ -993,6 +1058,16 @@ export class ClinicalMetricsEtlService {
                         // Check for significant gain
                         if (weightChangePct > this.WEIGHT_CHANGE_THRESHOLD) {
                             weight_gain_4pct_count++;
+
+                            // Track patient for weight gain category
+                            uniquePatients.weight_gain_4pct.add(patientSub);
+
+                            // Add to patient details for weight gain
+                            patientDetails.weight_gain_4pct.push({
+                                patient_sub: patientSub,
+                                metric_value: weight,
+                                reading_timestamp: reading.timestamp
+                            });
                         }
                     }
                 } catch (error) {
@@ -1006,9 +1081,12 @@ export class ClinicalMetricsEtlService {
         const weight_gain_4pct_percent = totalReadings > 0 ? (weight_gain_4pct_count / totalReadings * 100) : 0;
 
         return {
-            total: totalReadings,
-            weight_gain_4pct_count,
-            weight_gain_4pct_percent: parseFloat(weight_gain_4pct_percent.toFixed(2))
+            metrics: {
+                total: totalReadings,
+                weight_gain_4pct_count,
+                weight_gain_4pct_percent: parseFloat(weight_gain_4pct_percent.toFixed(2))
+            },
+            patientDetails: patientDetails
         };
     }
 
@@ -1042,35 +1120,57 @@ export class ClinicalMetricsEtlService {
     /**
      * Process glucose readings to calculate summary metrics by reading type
      */
-    private processGlucoseData(readings: DeviceReading[] , practiceId: string): GlucoseMetrics {
+    private processGlucoseData(readings: DeviceReading[], practiceId: string): GlucoseMetricsWithPatients {
         if (!readings || readings.length === 0) {
             return {
-                fasting: {
-                    total: 0,
-                    above_130_count: 0,
-                    above_130_percent: 0,
-                    above_160_count: 0,
-                    above_160_percent: 0,
-                    above_180_count: 0,
-                    above_180_percent: 0,
-                    below_70_count: 0,
-                    below_70_percent: 0,
-                    below_54_count: 0,
-                    below_54_percent: 0
+                metrics: {
+                    fasting: {
+                        total: 0,
+                        above_130_count: 0,
+                        above_130_percent: 0,
+                        above_160_count: 0,
+                        above_160_percent: 0,
+                        above_180_count: 0,
+                        above_180_percent: 0,
+                        below_70_count: 0,
+                        below_70_percent: 0,
+                        below_54_count: 0,
+                        below_54_percent: 0
+                    },
+                    post_meal: {
+                        total: 0,
+                        above_180_count: 0,
+                        above_180_percent: 0,
+                        above_200_count: 0,
+                        above_200_percent: 0
+                    },
+                    random: {
+                        total: 0,
+                        above_200_count: 0,
+                        above_200_percent: 0,
+                        below_70_count: 0,
+                        below_70_percent: 0
+                    }
                 },
-                post_meal: {
-                    total: 0,
-                    above_180_count: 0,
-                    above_180_percent: 0,
-                    above_200_count: 0,
-                    above_200_percent: 0
-                },
-                random: {
-                    total: 0,
-                    above_200_count: 0,
-                    above_200_percent: 0,
-                    below_70_count: 0,
-                    below_70_percent: 0
+                patientDetails: {
+                    fasting: {
+                        readings: [],
+                        above_130: [],
+                        above_160: [],
+                        above_180: [],
+                        below_70: [],
+                        below_54: []
+                    },
+                    post_meal: {
+                        readings: [],
+                        above_180: [],
+                        above_200: []
+                    },
+                    random: {
+                        readings: [],
+                        above_200: [],
+                        below_70: []
+                    }
                 }
             };
         }
@@ -1091,62 +1191,204 @@ export class ClinicalMetricsEtlService {
         let randomAbove200 = 0;
         let randomBelow70 = 0;
 
+        // Track patient details for each category
+        const patientDetails: GlucosePatientDetails = {
+            fasting: {
+                readings: [],
+                above_130: [],
+                above_160: [],
+                above_180: [],
+                below_70: [],
+                below_54: []
+            },
+            post_meal: {
+                readings: [],
+                above_180: [],
+                above_200: []
+            },
+            random: {
+                readings: [],
+                above_200: [],
+                below_70: []
+            }
+        };
+
+        // Sets to track unique patient IDs
+        const uniquePatients = {
+            fasting: {
+                readings: new Set<string>(),
+                above_130: new Set<string>(),
+                above_160: new Set<string>(),
+                above_180: new Set<string>(),
+                below_70: new Set<string>(),
+                below_54: new Set<string>()
+            },
+            post_meal: {
+                readings: new Set<string>(),
+                above_180: new Set<string>(),
+                above_200: new Set<string>()
+            },
+            random: {
+                readings: new Set<string>(),
+                above_200: new Set<string>(),
+                below_70: new Set<string>()
+            }
+        };
+
         for (const reading of readings) {
             if (!reading.detailed_value) {
                 continue;
             }
 
             try {
-                // console.log("Before Parsed Value Glucose", reading.detailed_value);
                 const metaGlucose = this.parseGlucoseValue(reading.detailed_value, reading.entry_type);
-                // console.log("After Parsed Value Glucose", metaGlucose);
+                const patientSub = reading.patient_sub;
 
                 const glucoseValue = metaGlucose.glucose;
-                const glucoseType = metaGlucose.type;
+                const glucoseType = metaGlucose.type.toLowerCase();
 
                 if (glucoseValue > 0) {
-                    const readingType = glucoseType.toLowerCase();
-                    console.log("*****Glucose Type*****", glucoseType);
-
                     // Categorize by reading type
-                    if (readingType.includes('fasting')) {
+                    if (glucoseType.includes('fasting')) {
                         fastingTotal++;
+                        uniquePatients.fasting.readings.add(patientSub);
+                        patientDetails.fasting.readings.push({
+                            patient_sub: patientSub,
+                            metric_value: glucoseValue,
+                            reading_timestamp: reading.timestamp
+                        });
 
                         if (glucoseValue > this.GLUCOSE_RANGES.fasting.critical_min) {
                             fastingAbove180++;
                             fastingAbove160++;
                             fastingAbove130++;
+                            uniquePatients.fasting.above_180.add(patientSub);
+                            uniquePatients.fasting.above_160.add(patientSub);
+                            uniquePatients.fasting.above_130.add(patientSub);
+                            patientDetails.fasting.above_180.push({
+                                patient_sub: patientSub,
+                                metric_value: glucoseValue,
+                                reading_timestamp: reading.timestamp
+                            });
+                            patientDetails.fasting.above_160.push({
+                                patient_sub: patientSub,
+                                metric_value: glucoseValue,
+                                reading_timestamp: reading.timestamp
+                            });
+                            patientDetails.fasting.above_130.push({
+                                patient_sub: patientSub,
+                                metric_value: glucoseValue,
+                                reading_timestamp: reading.timestamp
+                            });
                         } else if (glucoseValue > this.GLUCOSE_RANGES.fasting.very_high_min) {
                             fastingAbove160++;
                             fastingAbove130++;
+                            uniquePatients.fasting.above_160.add(patientSub);
+                            uniquePatients.fasting.above_130.add(patientSub);
+                            patientDetails.fasting.above_160.push({
+                                patient_sub: patientSub,
+                                metric_value: glucoseValue,
+                                reading_timestamp: reading.timestamp
+                            });
+                            patientDetails.fasting.above_130.push({
+                                patient_sub: patientSub,
+                                metric_value: glucoseValue,
+                                reading_timestamp: reading.timestamp
+                            });
                         } else if (glucoseValue > this.GLUCOSE_RANGES.fasting.high_min) {
                             fastingAbove130++;
+                            uniquePatients.fasting.above_130.add(patientSub);
+                            patientDetails.fasting.above_130.push({
+                                patient_sub: patientSub,
+                                metric_value: glucoseValue,
+                                reading_timestamp: reading.timestamp
+                            });
                         }
 
                         if (glucoseValue < this.GLUCOSE_RANGES.fasting.severe_low_max) {
                             fastingBelow54++;
                             fastingBelow70++;
+                            uniquePatients.fasting.below_54.add(patientSub);
+                            uniquePatients.fasting.below_70.add(patientSub);
+                            patientDetails.fasting.below_54.push({
+                                patient_sub: patientSub,
+                                metric_value: glucoseValue,
+                                reading_timestamp: reading.timestamp
+                            });
+                            patientDetails.fasting.below_70.push({
+                                patient_sub: patientSub,
+                                metric_value: glucoseValue,
+                                reading_timestamp: reading.timestamp
+                            });
                         } else if (glucoseValue < this.GLUCOSE_RANGES.fasting.low_max) {
                             fastingBelow70++;
+                            uniquePatients.fasting.below_70.add(patientSub);
+                            patientDetails.fasting.below_70.push({
+                                patient_sub: patientSub,
+                                metric_value: glucoseValue,
+                                reading_timestamp: reading.timestamp
+                            });
                         }
-                    } else if (readingType.includes('post') || readingType.includes('meal')) {
+                    } else if (glucoseType.includes('post') || glucoseType.includes('meal')) {
                         postMealTotal++;
+                        uniquePatients.post_meal.readings.add(patientSub);
+                        patientDetails.post_meal.readings.push({
+                            patient_sub: patientSub,
+                            metric_value: glucoseValue,
+                            reading_timestamp: reading.timestamp
+                        });
 
                         if (glucoseValue > this.GLUCOSE_RANGES.post_meal.critical_min) {
                             postMealAbove200++;
                             postMealAbove180++;
+                            uniquePatients.post_meal.above_200.add(patientSub);
+                            uniquePatients.post_meal.above_180.add(patientSub);
+                            patientDetails.post_meal.above_200.push({
+                                patient_sub: patientSub,
+                                metric_value: glucoseValue,
+                                reading_timestamp: reading.timestamp
+                            });
+                            patientDetails.post_meal.above_180.push({
+                                patient_sub: patientSub,
+                                metric_value: glucoseValue,
+                                reading_timestamp: reading.timestamp
+                            });
                         } else if (glucoseValue > this.GLUCOSE_RANGES.post_meal.high_min) {
                             postMealAbove180++;
+                            uniquePatients.post_meal.above_180.add(patientSub);
+                            patientDetails.post_meal.above_180.push({
+                                patient_sub: patientSub,
+                                metric_value: glucoseValue,
+                                reading_timestamp: reading.timestamp
+                            });
                         }
                     } else {  // Random/Normal readings
                         randomTotal++;
+                        uniquePatients.random.readings.add(patientSub);
+                        patientDetails.random.readings.push({
+                            patient_sub: patientSub,
+                            metric_value: glucoseValue,
+                            reading_timestamp: reading.timestamp
+                        });
 
                         if (glucoseValue > this.GLUCOSE_RANGES.random.high_min) {
                             randomAbove200++;
+                            uniquePatients.random.above_200.add(patientSub);
+                            patientDetails.random.above_200.push({
+                                patient_sub: patientSub,
+                                metric_value: glucoseValue,
+                                reading_timestamp: reading.timestamp
+                            });
                         }
 
                         if (glucoseValue < this.GLUCOSE_RANGES.random.low_max) {
                             randomBelow70++;
+                            uniquePatients.random.below_70.add(patientSub);
+                            patientDetails.random.below_70.push({
+                                patient_sub: patientSub,
+                                metric_value: glucoseValue,
+                                reading_timestamp: reading.timestamp
+                            });
                         }
                     }
                 }
@@ -1170,39 +1412,40 @@ export class ClinicalMetricsEtlService {
         const randomBelow70Pct = randomTotal > 0 ? (randomBelow70 / randomTotal * 100) : 0;
 
         return {
-            fasting: {
-                total: fastingTotal,
-                above_130_count: fastingAbove130,
-                above_130_percent: parseFloat(fastingAbove130Pct.toFixed(2)),
-                above_160_count: fastingAbove160,
-                above_160_percent: parseFloat(fastingAbove160Pct.toFixed(2)),
-                above_180_count: fastingAbove180,
-                above_180_percent: parseFloat(fastingAbove180Pct.toFixed(2)),
-                below_70_count: fastingBelow70,
-                below_70_percent: parseFloat(fastingBelow70Pct.toFixed(2)),
-                below_54_count: fastingBelow54,
-                below_54_percent: parseFloat(fastingBelow54Pct.toFixed(2))
+            metrics: {
+                fasting: {
+                    total: fastingTotal,
+                    above_130_count: fastingAbove130,
+                    above_130_percent: parseFloat(fastingAbove130Pct.toFixed(2)),
+                    above_160_count: fastingAbove160,
+                    above_160_percent: parseFloat(fastingAbove160Pct.toFixed(2)),
+                    above_180_count: fastingAbove180,
+                    above_180_percent: parseFloat(fastingAbove180Pct.toFixed(2)),
+                    below_70_count: fastingBelow70,
+                    below_70_percent: parseFloat(fastingBelow70Pct.toFixed(2)),
+                    below_54_count: fastingBelow54,
+                    below_54_percent: parseFloat(fastingBelow54Pct.toFixed(2))
+                },
+                post_meal: {
+                    total: postMealTotal,
+                    above_180_count: postMealAbove180,
+                    above_180_percent: parseFloat(postMealAbove180Pct.toFixed(2)),
+                    above_200_count: postMealAbove200,
+                    above_200_percent: parseFloat(postMealAbove200Pct.toFixed(2))
+                },
+                random: {
+                    total: randomTotal,
+                    above_200_count: randomAbove200,
+                    above_200_percent: parseFloat(randomAbove200Pct.toFixed(2)),
+                    below_70_count: randomBelow70,
+                    below_70_percent: parseFloat(randomBelow70Pct.toFixed(2))
+                }
             },
-            post_meal: {
-                total: postMealTotal,
-                above_180_count: postMealAbove180,
-                above_180_percent: parseFloat(postMealAbove180Pct.toFixed(2)),
-                above_200_count: postMealAbove200,
-                above_200_percent: parseFloat(postMealAbove200Pct.toFixed(2))
-            },
-            random: {
-                total: randomTotal,
-                above_200_count: randomAbove200,
-                above_200_percent: parseFloat(randomAbove200Pct.toFixed(2)),
-                below_70_count: randomBelow70,
-                below_70_percent: parseFloat(randomBelow70Pct.toFixed(2))
-            }
+            patientDetails: patientDetails
         };
     }
 
-    /**
-     * Get alert metrics (critical alerts and escalations) for a group of patients
-     */
+
     /**
      * Get alert metrics (critical alerts and escalations) for a group of patients
      */
@@ -1211,14 +1454,20 @@ export class ClinicalMetricsEtlService {
         startDate?: Date,
         endDate?: Date,
         practiceId?: string,
-    ): Promise<AlertMetrics> {
+    ): Promise<AlertMetricsWithPatients> {
         if (!patientIds || patientIds.length === 0) {
             return {
-                total_readings: 0,
-                critical_alerts_count: 0,
-                critical_alerts_percent: 0,
-                escalations_count: 0,
-                escalations_percent: 0
+                metrics: {
+                    total_readings: 0,
+                    critical_alerts_count: 0,
+                    critical_alerts_percent: 0,
+                    escalations_count: 0,
+                    escalations_percent: 0
+                },
+                patientDetails: {
+                    critical_alerts: [],
+                    escalations: []
+                }
             };
         }
 
@@ -1226,6 +1475,12 @@ export class ClinicalMetricsEtlService {
         let totalReadings = 0n;
         let criticalAlerts = 0n;
         let escalations = 0n;
+
+        // Track patient details for alerts
+        const patientDetails: AlertPatientDetails = {
+            critical_alerts: [],
+            escalations: []
+        };
 
         // Split patient_ids into manageable chunks
         const patientChunks = this.chunkArray(patientIds, this.CHUNK_SIZE);
@@ -1255,63 +1510,93 @@ export class ClinicalMetricsEtlService {
 
                     // Count total readings
                     const totalQuery = `
-                        SELECT COUNT(*) as total_count
-                        FROM device_data_transmission
-                        WHERE trim(patient_sub) IN (${placeholders})
-                            ${dateConditions}
-                    `;
+                    SELECT COUNT(*) as total_count
+                    FROM device_data_transmission
+                    WHERE trim(patient_sub) IN (${placeholders})
+                        ${dateConditions}
+                `;
 
                     const totalResult = await queryRunner.query(totalQuery, baseParams);
                     // Convert string to BigInt to safely handle large numbers
                     const chunkTotal = BigInt(String(totalResult[0]?.total_count || '0'));
                     totalReadings += chunkTotal;
 
-                    // Count critical alerts
+                    // Get critical alerts
                     const criticalQuery = `
-                        SELECT COUNT(*) as critical_count
-                        FROM device_data_transmission
-                        WHERE trim(patient_sub) IN (${placeholders})
-                          AND critical_alert = 1
-                            ${dateConditions}
-                    `;
+                    SELECT 
+                        patient_sub,
+                        timestamp,
+                        device_name,
+                        detailed_value
+                    FROM device_data_transmission
+                    WHERE trim(patient_sub) IN (${placeholders})
+                      AND critical_alert = 1
+                        ${dateConditions}
+                `;
 
-                    // Count for out of range alerts
-                    const outOfRangeQuery = `
-                        SELECT COUNT(*) as out_of_range_count
-                        FROM device_data_transmission
-                        WHERE trim(patient_sub) IN (${placeholders})
-                          AND out_of_range_alert = 1
-                            ${dateConditions}
-                    `;
-
-                    const criticalResult = await queryRunner.query(criticalQuery, baseParams);
-                    // Convert string to BigInt
-                    const chunkCritical = BigInt(String(criticalResult[0]?.critical_count || '0'));
+                    const criticalResults = await queryRunner.query(criticalQuery, baseParams);
+                    const chunkCritical = BigInt(String(criticalResults.length || '0'));
                     criticalAlerts += chunkCritical;
 
-                    // Adding critical alerts
-                    const outOfRangeResult = await queryRunner.query(outOfRangeQuery, baseParams);
-                    // Convert string to BigInt
-                    const chunkOutOfRange = BigInt(String(outOfRangeResult[0]?.out_of_range_count || '0'));
+                    // Add to patient details for critical alerts
+                    for (const alert of criticalResults) {
+                        patientDetails.critical_alerts.push({
+                            patient_sub: alert.patient_sub,
+                            reading_timestamp: alert.timestamp
+                        });
+                    }
+
+                    // Get out of range alerts
+                    const outOfRangeQuery = `
+                    SELECT 
+                        patient_sub,
+                        timestamp,
+                        device_name,
+                        detailed_value
+                    FROM device_data_transmission
+                    WHERE trim(patient_sub) IN (${placeholders})
+                      AND out_of_range_alert = 1
+                        ${dateConditions}
+                `;
+
+                    const outOfRangeResults = await queryRunner.query(outOfRangeQuery, baseParams);
+                    const chunkOutOfRange = BigInt(String(outOfRangeResults.length || '0'));
                     criticalAlerts += chunkOutOfRange;
 
-                    // Count escalations (external alerts)
+                    // Add to patient details for out of range alerts
+                    for (const alert of outOfRangeResults) {
+                        patientDetails.critical_alerts.push({
+                            patient_sub: alert.patient_sub,
+                            reading_timestamp: alert.timestamp
+                        });
+                    }
+
+                    // Get escalations (external alerts)
                     const escalationQuery = `
-                        SELECT COUNT(*) as escalation_count
-                        FROM device_data_transmission
-                        WHERE trim(patient_sub) IN (${placeholders})
-                          AND ext_alert = 1
-                            ${dateConditions}
-                    `;
+                    SELECT 
+                        patient_sub,
+                        timestamp,
+                        device_name,
+                        detailed_value,
+                        ext_alert_comments
+                    FROM device_data_transmission
+                    WHERE trim(patient_sub) IN (${placeholders})
+                      AND ext_alert = 1
+                        ${dateConditions}
+                `;
 
-                    const escalationResult = await queryRunner.query(escalationQuery, baseParams);
-                    // Convert string to BigInt
-                    const chunkEscalations = BigInt(String(escalationResult[0]?.escalation_count || '0'));
-
-                    // Enhanced logging to track progress and help with debugging
-                    this.logger.debug(`Chunk ${patientChunks.indexOf(chunk) + 1}/${patientChunks.length}: Adding ${chunkEscalations} escalations`);
-
+                    const escalationResults = await queryRunner.query(escalationQuery, baseParams);
+                    const chunkEscalations = BigInt(String(escalationResults.length || '0'));
                     escalations += chunkEscalations;
+
+                    // Add to patient details for escalations
+                    for (const alert of escalationResults) {
+                        patientDetails.escalations.push({
+                            patient_sub: alert.patient_sub,
+                            reading_timestamp: alert.timestamp
+                        });
+                    }
+
                 } finally {
                     await queryRunner.release();
                 }
@@ -1321,7 +1606,6 @@ export class ClinicalMetricsEtlService {
             this.logger.log(`Raw BigInt counts - totalReadings: ${totalReadings}, criticalAlerts: ${criticalAlerts}, escalations: ${escalations}`);
 
             // Convert BigInt to Number for the final result
-            // For extremely large values, this could theoretically lose precision, but it's unlikely in practice
             const totalReadingsNum = Number(totalReadings);
             const criticalAlertsNum = Number(criticalAlerts);
             const escalationsNum = Number(escalations);
@@ -1334,24 +1618,34 @@ export class ClinicalMetricsEtlService {
             this.logger.log(`Final counts - totalReadings: ${totalReadingsNum}, criticalAlerts: ${criticalAlertsNum}, escalations: ${escalationsNum}`);
 
             return {
-                total_readings: totalReadingsNum,
-                critical_alerts_count: criticalAlertsNum,
-                critical_alerts_percent: parseFloat(criticalAlertsPercent.toFixed(2)),
-                escalations_count: escalationsNum,
-                escalations_percent: parseFloat(escalationsPercent.toFixed(2))
+                metrics: {
+                    total_readings: totalReadingsNum,
+                    critical_alerts_count: criticalAlertsNum,
+                    critical_alerts_percent: parseFloat(criticalAlertsPercent.toFixed(2)),
+                    escalations_count: escalationsNum,
+                    escalations_percent: parseFloat(escalationsPercent.toFixed(2))
+                },
+                patientDetails: patientDetails
             };
         } catch (error) {
             this.logger.error(`Error retrieving alert metrics: ${error.message}`);
             this.logger.error(error.stack);
             return {
-                total_readings: 0,
-                critical_alerts_count: 0,
-                critical_alerts_percent: 0,
-                escalations_count: 0,
-                escalations_percent: 0
+                metrics: {
+                    total_readings: 0,
+                    critical_alerts_count: 0,
+                    critical_alerts_percent: 0,
+                    escalations_count: 0,
+                    escalations_percent: 0
+                },
+                patientDetails: {
+                    critical_alerts: [],
+                    escalations: []
+                }
             };
         }
     }
+
     /**
      * Store calculated clinical metrics in the database
      */
@@ -1359,378 +1653,399 @@ export class ClinicalMetricsEtlService {
         summaryDate: string,
         practiceId: string,
         enrollmentPeriod: string,
-        bpMetrics: BpMetrics,
-        oximeterMetrics: OximeterMetrics,
-        weightMetrics: WeightMetrics,
-        glucoseMetrics: GlucoseMetrics,
-        alertMetrics: AlertMetrics
+        bpMetricsData: BpMetricsWithPatients,
+        oximeterMetricsData: OximeterMetricsWithPatients,
+        weightMetricsData: WeightMetricsWithPatients,
+        glucoseMetricsData: GlucoseMetricsWithPatients,
+        alertMetricsData: AlertMetricsWithPatients
     ): Promise<void> {
         try {
-            // todo:
             const dataSource = await this.databaseService.getConnection(practiceId);
             const queryRunner = dataSource.createQueryRunner();
+            await queryRunner.startTransaction();
 
             try {
+                const bpMetrics = bpMetricsData.metrics;
+                const oximeterMetrics = oximeterMetricsData.metrics;
+                const weightMetrics = weightMetricsData;
+                const fasting = glucoseMetricsData.metrics.fasting;
+                const postMeal = glucoseMetricsData.metrics.post_meal;
+                const randomGlucose = glucoseMetricsData.metrics.random;
+                const alertMetrics = alertMetricsData.metrics;
+
                 // Check if record exists for this practice, period, and date
                 const checkQuery = `
-                    SELECT id
-                    FROM clinical_metrics_summary
-                    WHERE practice_id = ?
-                      AND enrollment_period = ?
-                `;
+                SELECT id
+                FROM clinical_metrics_summary
+                WHERE practice_id = ?
+                  AND enrollment_period = ?
+                  AND summary_date = ?
+            `;
 
                 const result = await queryRunner.query(checkQuery, [practiceId, enrollmentPeriod, summaryDate]);
 
-                // Extract glucose metrics for easier access
-                const fasting  = glucoseMetrics.fasting;
-                const postMeal = glucoseMetrics.post_meal;
-                const randomGlucose = glucoseMetrics.random;
+                // Calculate unique patient counts for blood pressure metrics
+                const uniqueBpPatients = new Set(bpMetricsData.patientDetails.bp_readings.map(p => p.patient_sub)).size;
+                const uniqueBpAbnormalPatients = new Set(bpMetricsData.patientDetails.bp_abnormal.map(p => p.patient_sub)).size;
+                const uniqueBpArrhythmiaPatients = new Set(bpMetricsData.patientDetails.bp_arrhythmia.map(p => p.patient_sub)).size;
+                const uniqueBpNormalPatients = new Set(bpMetricsData.patientDetails.bp_normal.map(p => p.patient_sub)).size;
+                const uniqueBpSysGt130DiaGt80Patients = new Set(bpMetricsData.patientDetails.bp_sys_gt_130_dia_gt_80.map(p => p.patient_sub)).size;
+                const uniqueBpSysGt140DiaGt80Patients = new Set(bpMetricsData.patientDetails.bp_sys_gt_140_dia_gt_80.map(p => p.patient_sub)).size;
+                const uniqueBpSysGt150DiaGt80Patients = new Set(bpMetricsData.patientDetails.bp_sys_gt_150_dia_gt_80.map(p => p.patient_sub)).size;
+                const uniqueBpSysGt160DiaGt80Patients = new Set(bpMetricsData.patientDetails.bp_sys_gt_160_dia_gt_80.map(p => p.patient_sub)).size;
+                const uniqueBpSysLt90DiaLt60Patients = new Set(bpMetricsData.patientDetails.bp_sys_lt_90_dia_lt_60.map(p => p.patient_sub)).size;
+                const uniqueBpHrAbnormalPatients = new Set(bpMetricsData.patientDetails.bp_hr_abnormal.map(p => p.patient_sub)).size;
+
+                // Calculate unique patient counts for oximeter metrics
+                const uniqueSpo2Patients = new Set(oximeterMetricsData.patientDetails.spo2_readings.map(p => p.patient_sub)).size;
+                const uniqueSpo2_90_92_Patients = new Set(oximeterMetricsData.patientDetails.spo2_90_92.map(p => p.patient_sub)).size;
+                const uniqueSpo2_88_89_Patients = new Set(oximeterMetricsData.patientDetails.spo2_88_89.map(p => p.patient_sub)).size;
+                const uniqueSpo2Below88Patients = new Set(oximeterMetricsData.patientDetails.spo2_below_88.map(p => p.patient_sub)).size;
+
+                // Calculate unique patient counts for weight metrics
+                const uniqueWeightPatients = new Set(weightMetricsData.patientDetails.weight_readings.map(p => p.patient_sub)).size;
+                const uniqueWeightGain4PctPatients = new Set(weightMetricsData.patientDetails.weight_gain_4pct.map(p => p.patient_sub)).size;
+
+                // Calculate unique patient counts for glucose metrics
+                const uniqueGlucoseFastingPatients = new Set(glucoseMetricsData.patientDetails.fasting.readings.map(p => p.patient_sub)).size;
+                const uniqueGlucoseFastingAbove130Patients = new Set(glucoseMetricsData.patientDetails.fasting.above_130.map(p => p.patient_sub)).size;
+                const uniqueGlucoseFastingAbove160Patients = new Set(glucoseMetricsData.patientDetails.fasting.above_160.map(p => p.patient_sub)).size;
+                const uniqueGlucoseFastingAbove180Patients = new Set(glucoseMetricsData.patientDetails.fasting.above_180.map(p => p.patient_sub)).size;
+                const uniqueGlucoseFastingBelow70Patients = new Set(glucoseMetricsData.patientDetails.fasting.below_70.map(p => p.patient_sub)).size;
+                const uniqueGlucoseFastingBelow54Patients = new Set(glucoseMetricsData.patientDetails.fasting.below_54.map(p => p.patient_sub)).size;
+
+                const uniqueGlucosePostmealPatients = new Set(glucoseMetricsData.patientDetails.post_meal.readings.map(p => p.patient_sub)).size;
+                const uniqueGlucosePostmealAbove180Patients = new Set(glucoseMetricsData.patientDetails.post_meal.above_180.map(p => p.patient_sub)).size;
+                const uniqueGlucosePostmealAbove200Patients = new Set(glucoseMetricsData.patientDetails.post_meal.above_200.map(p => p.patient_sub)).size;
+
+                const uniqueGlucoseRandomPatients = new Set(glucoseMetricsData.patientDetails.random.readings.map(p => p.patient_sub)).size;
+                const uniqueGlucoseRandomAbove200Patients = new Set(glucoseMetricsData.patientDetails.random.above_200.map(p => p.patient_sub)).size;
+                const uniqueGlucoseRandomBelow70Patients = new Set(glucoseMetricsData.patientDetails.random.below_70.map(p => p.patient_sub)).size;
+
+                // Calculate unique patient counts for alert metrics
+                const uniqueCriticalAlertsPatients = new Set(alertMetricsData.patientDetails.critical_alerts.map(p => p.patient_sub)).size;
+                const uniqueEscalationsPatients = new Set(alertMetricsData.patientDetails.escalations.map(p => p.patient_sub)).size;
+
+                let summaryId: number;
 
                 if (result && result.length > 0) {
+                    summaryId = result[0].id;
                     // Update existing record
-                    const updateQuery = `
-                        UPDATE clinical_metrics_summary
-                        SET
-                            -- Blood Pressure Metrics
-                            bp_total_readings                  = ?,
-                            bp_abnormal_count                  = ?,
-                            bp_abnormal_percent                = ?,
-                            bp_avg_sys                         = ?,
-                            bp_avg_dia                         = ?,
-                            bp_avg_hr                          = ?,
-                            bp_arrhythmia_count                = ?,
-                            bp_arrhythmia_percent              = ?,
-                            bp_normal_count                    = ?,
-                            bp_normal_percent                  = ?,
-                            bp_normal_avg_sys                  = ?,
-                            bp_normal_avg_dia                  = ?,
-                            bp_normal_avg_hr                   = ?,
-
-                            -- New BP Threshold Metrics
-                            bp_sys_gt_130_dia_gt_80_count      = ?,
-                            bp_sys_gt_130_dia_gt_80_percent    = ?,
-                            bp_sys_gt_140_dia_gt_80_count      = ?,
-                            bp_sys_gt_140_dia_gt_80_percent    = ?,
-                            bp_sys_gt_150_dia_gt_80_count      = ?,
-                            bp_sys_gt_150_dia_gt_80_percent    = ?,
-                            bp_sys_gt_160_dia_gt_80_count      = ?,
-                            bp_sys_gt_160_dia_gt_80_percent    = ?,
-                            bp_sys_lt_90_dia_lt_60_count       = ?,
-                            bp_sys_lt_90_dia_lt_60_percent     = ?,
-                            bp_hr_abnormal_count               = ?,
-                            bp_hr_abnormal_percent             = ?,
-
-                            -- Pulse Oximeter Metrics
-                            spo2_total_readings                = ?,
-                            spo2_90_92_count                   = ?,
-                            spo2_90_92_percent                 = ?,
-                            spo2_88_89_count                   = ?,
-                            spo2_88_89_percent                 = ?,
-                            spo2_below_88_count                = ?,
-                            spo2_below_88_percent              = ?,
-
-                            -- Weight Metrics
-                            weight_total_readings              = ?,
-                            weight_gain_4pct_count             = ?,
-                            weight_gain_4pct_percent           = ?,
-
-                            -- Glucose Metrics - Fasting
-                            glucose_fasting_total              = ?,
-                            glucose_fasting_above_130_count    = ?,
-                            glucose_fasting_above_130_percent  = ?,
-                            glucose_fasting_above_160_count    = ?,
-                            glucose_fasting_above_160_percent  = ?,
-                            glucose_fasting_above_180_count    = ?,
-                            glucose_fasting_above_180_percent  = ?,
-                            glucose_fasting_below_70_count     = ?,
-                            glucose_fasting_below_70_percent   = ?,
-                            glucose_fasting_below_54_count     = ?,
-                            glucose_fasting_below_54_percent   = ?,
-
-                            -- Glucose Metrics - Post Meal
-                            glucose_postmeal_total             = ?,
-                            glucose_postmeal_above_180_count   = ?,
-                            glucose_postmeal_above_180_percent = ?,
-                            glucose_postmeal_above_200_count   = ?,
-                            glucose_postmeal_above_200_percent = ?,
-
-                            -- Glucose Metrics - Random
-                            glucose_random_total               = ?,
-                            glucose_random_above_200_count     = ?,
-                            glucose_random_above_200_percent   = ?,
-                            glucose_random_below_70_count      = ?,
-                            glucose_random_below_70_percent    = ?,
-
-                            -- Alert Metrics
-                            critical_alerts_count              = ?,
-                            critical_alerts_percent            = ?,
-                            escalations_count                  = ?,
-                            escalations_percent                = ?,
-
-                            updated_at                         = CURRENT_TIMESTAMP
-                        WHERE id = ?
-                    `;
 
                     await queryRunner.query(updateQuery, [
                         // Blood Pressure Metrics
                         bpMetrics.total,
+                        uniqueBpPatients,
                         bpMetrics.abnormal_count,
                         bpMetrics.abnormal_percent,
+                        uniqueBpAbnormalPatients,
                         bpMetrics.avg_sys,
                         bpMetrics.avg_dia,
                         bpMetrics.avg_hr,
                         bpMetrics.arrhythmia_count,
                         bpMetrics.arrhythmia_percent,
+                        uniqueBpArrhythmiaPatients,
                         bpMetrics.normal_count,
                         bpMetrics.normal_percent,
+                        uniqueBpNormalPatients,
                         bpMetrics.normal_avg_sys,
                         bpMetrics.normal_avg_dia,
                         bpMetrics.normal_avg_hr,
 
-                        // New BP Threshold Metrics
+                        // BP Threshold Metrics with patient counts
                         bpMetrics.sys_gt_130_dia_gt_80_count,
                         bpMetrics.sys_gt_130_dia_gt_80_percent,
+                        uniqueBpSysGt130DiaGt80Patients,
                         bpMetrics.sys_gt_140_dia_gt_80_count,
                         bpMetrics.sys_gt_140_dia_gt_80_percent,
+                        uniqueBpSysGt140DiaGt80Patients,
                         bpMetrics.sys_gt_150_dia_gt_80_count,
                         bpMetrics.sys_gt_150_dia_gt_80_percent,
+                        uniqueBpSysGt150DiaGt80Patients,
                         bpMetrics.sys_gt_160_dia_gt_80_count,
                         bpMetrics.sys_gt_160_dia_gt_80_percent,
+                        uniqueBpSysGt160DiaGt80Patients,
                         bpMetrics.sys_lt_90_dia_lt_60_count,
                         bpMetrics.sys_lt_90_dia_lt_60_percent,
+                        uniqueBpSysLt90DiaLt60Patients,
                         bpMetrics.hr_abnormal_count,
                         bpMetrics.hr_abnormal_percent,
+                        uniqueBpHrAbnormalPatients,
 
                         // Pulse Oximeter Metrics
                         oximeterMetrics.total,
+                        uniqueSpo2Patients,
                         oximeterMetrics.spo2_90_92_count,
                         oximeterMetrics.spo2_90_92_percent,
+                        uniqueSpo2_90_92_Patients,
                         oximeterMetrics.spo2_88_89_count,
                         oximeterMetrics.spo2_88_89_percent,
+                        uniqueSpo2_88_89_Patients,
                         oximeterMetrics.spo2_below_88_count,
                         oximeterMetrics.spo2_below_88_percent,
+                        uniqueSpo2Below88Patients,
 
                         // Weight Metrics
-                        weightMetrics.total,
-                        weightMetrics.weight_gain_4pct_count,
-                        weightMetrics.weight_gain_4pct_percent,
+                        weightMetrics.metrics.total,
+                        uniqueWeightPatients,
+                        weightMetrics.metrics.weight_gain_4pct_count,
+                        weightMetrics.metrics.weight_gain_4pct_percent,
+                        uniqueWeightGain4PctPatients,
 
                         // Glucose Metrics - Fasting
                         fasting.total,
+                        uniqueGlucoseFastingPatients,
                         fasting.above_130_count,
                         fasting.above_130_percent,
+                        uniqueGlucoseFastingAbove130Patients,
                         fasting.above_160_count,
                         fasting.above_160_percent,
+                        uniqueGlucoseFastingAbove160Patients,
                         fasting.above_180_count,
                         fasting.above_180_percent,
+                        uniqueGlucoseFastingAbove180Patients,
                         fasting.below_70_count,
                         fasting.below_70_percent,
+                        uniqueGlucoseFastingBelow70Patients,
                         fasting.below_54_count,
                         fasting.below_54_percent,
+                        uniqueGlucoseFastingBelow54Patients,
 
                         // Glucose Metrics - Post Meal
                         postMeal.total,
+                        uniqueGlucosePostmealPatients,
                         postMeal.above_180_count,
                         postMeal.above_180_percent,
+                        uniqueGlucosePostmealAbove180Patients,
                         postMeal.above_200_count,
                         postMeal.above_200_percent,
+                        uniqueGlucosePostmealAbove200Patients,
 
                         // Glucose Metrics - Random
                         randomGlucose.total,
+                        uniqueGlucoseRandomPatients,
                         randomGlucose.above_200_count,
                         randomGlucose.above_200_percent,
+                        uniqueGlucoseRandomAbove200Patients,
                         randomGlucose.below_70_count,
                         randomGlucose.below_70_percent,
+                        uniqueGlucoseRandomBelow70Patients,
 
                         // Alert Metrics
                         alertMetrics.critical_alerts_count,
                         alertMetrics.critical_alerts_percent,
+                        uniqueCriticalAlertsPatients,
                         alertMetrics.escalations_count,
                         alertMetrics.escalations_percent,
+                        uniqueEscalationsPatients,
 
                         // Record ID
-                        result[0].id
+                        summaryId
                     ]);
 
                     this.logger.log(`Updated clinical metrics for practice ${practiceId} in period ${enrollmentPeriod}`);
                 } else {
                     // Insert new record
-                    const insertQuery = `
-                        INSERT INTO clinical_metrics_summary (summary_date,
-                                                              practice_id,
-                                                              enrollment_period,
-
-                            -- Blood Pressure Metrics
-                                                              bp_total_readings,
-                                                              bp_abnormal_count,
-                                                              bp_abnormal_percent,
-                                                              bp_avg_sys,
-                                                              bp_avg_dia,
-                                                              bp_avg_hr,
-                                                              bp_arrhythmia_count,
-                                                              bp_arrhythmia_percent,
-                                                              bp_normal_count,
-                                                              bp_normal_percent,
-                                                              bp_normal_avg_sys,
-                                                              bp_normal_avg_dia,
-                                                              bp_normal_avg_hr,
-
-                            -- New BP Threshold Metrics
-                                                              bp_sys_gt_130_dia_gt_80_count,
-                                                              bp_sys_gt_130_dia_gt_80_percent,
-                                                              bp_sys_gt_140_dia_gt_80_count,
-                                                              bp_sys_gt_140_dia_gt_80_percent,
-                                                              bp_sys_gt_150_dia_gt_80_count,
-                                                              bp_sys_gt_150_dia_gt_80_percent,
-                                                              bp_sys_gt_160_dia_gt_80_count,
-                                                              bp_sys_gt_160_dia_gt_80_percent,
-                                                              bp_sys_lt_90_dia_lt_60_count,
-                                                              bp_sys_lt_90_dia_lt_60_percent,
-                                                              bp_hr_abnormal_count,
-                                                              bp_hr_abnormal_percent,
-
-                            -- Pulse Oximeter Metrics
-                                                              spo2_total_readings,
-                                                              spo2_90_92_count,
-                                                              spo2_90_92_percent,
-                                                              spo2_88_89_count,
-                                                              spo2_88_89_percent,
-                                                              spo2_below_88_count,
-                                                              spo2_below_88_percent,
-
-                            -- Weight Metrics
-                                                              weight_total_readings,
-                                                              weight_gain_4pct_count,
-                                                              weight_gain_4pct_percent,
-
-                            -- Glucose Metrics - Fasting
-                                                              glucose_fasting_total,
-                                                              glucose_fasting_above_130_count,
-                                                              glucose_fasting_above_130_percent,
-                                                              glucose_fasting_above_160_count,
-                                                              glucose_fasting_above_160_percent,
-                                                              glucose_fasting_above_180_count,
-                                                              glucose_fasting_above_180_percent,
-                                                              glucose_fasting_below_70_count,
-                                                              glucose_fasting_below_70_percent,
-                                                              glucose_fasting_below_54_count,
-                                                              glucose_fasting_below_54_percent,
-
-                            -- Glucose Metrics - Post Meal
-                                                              glucose_postmeal_total,
-                                                              glucose_postmeal_above_180_count,
-                                                              glucose_postmeal_above_180_percent,
-                                                              glucose_postmeal_above_200_count,
-                                                              glucose_postmeal_above_200_percent,
-
-                            -- Glucose Metrics - Random
-                                                              glucose_random_total,
-                                                              glucose_random_above_200_count,
-                                                              glucose_random_above_200_percent,
-                                                              glucose_random_below_70_count,
-                                                              glucose_random_below_70_percent,
-
-                            -- Alert Metrics
-                                                              critical_alerts_count,
-                                                              critical_alerts_percent,
-                                                              escalations_count,
-                                                              escalations_percent)
-                        VALUES (?, ?, ?,
-                                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                                ?, ?, ?, ?, ?, ?, ?,
-                                ?, ?, ?,
-                                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                                ?, ?, ?, ?, ?,
-                                ?, ?, ?, ?, ?,
-                                ?, ?, ?, ?)
-                    `;
-
-                    await queryRunner.query(insertQuery, [
+                    const insertResult = await queryRunner.query(insertQuery, [
                         // Basic Info
                         summaryDate,
                         practiceId,
                         enrollmentPeriod,
 
-                        // Blood Pressure Metrics
+                        // Blood Pressure Metrics with patient counts
                         bpMetrics.total,
+                        uniqueBpPatients,
                         bpMetrics.abnormal_count,
                         bpMetrics.abnormal_percent,
+                        uniqueBpAbnormalPatients,
                         bpMetrics.avg_sys,
                         bpMetrics.avg_dia,
                         bpMetrics.avg_hr,
                         bpMetrics.arrhythmia_count,
                         bpMetrics.arrhythmia_percent,
+                        uniqueBpArrhythmiaPatients,
                         bpMetrics.normal_count,
                         bpMetrics.normal_percent,
+                        uniqueBpNormalPatients,
                         bpMetrics.normal_avg_sys,
                         bpMetrics.normal_avg_dia,
                         bpMetrics.normal_avg_hr,
 
-                        // New BP Threshold Metrics
+                        // BP Threshold Metrics with patient counts
                         bpMetrics.sys_gt_130_dia_gt_80_count,
                         bpMetrics.sys_gt_130_dia_gt_80_percent,
+                        uniqueBpSysGt130DiaGt80Patients,
                         bpMetrics.sys_gt_140_dia_gt_80_count,
                         bpMetrics.sys_gt_140_dia_gt_80_percent,
+                        uniqueBpSysGt140DiaGt80Patients,
                         bpMetrics.sys_gt_150_dia_gt_80_count,
                         bpMetrics.sys_gt_150_dia_gt_80_percent,
+                        uniqueBpSysGt150DiaGt80Patients,
                         bpMetrics.sys_gt_160_dia_gt_80_count,
                         bpMetrics.sys_gt_160_dia_gt_80_percent,
+                        uniqueBpSysGt160DiaGt80Patients,
                         bpMetrics.sys_lt_90_dia_lt_60_count,
                         bpMetrics.sys_lt_90_dia_lt_60_percent,
+                        uniqueBpSysLt90DiaLt60Patients,
                         bpMetrics.hr_abnormal_count,
                         bpMetrics.hr_abnormal_percent,
+                        uniqueBpHrAbnormalPatients,
 
-                        // Pulse Oximeter Metrics
+                        // Pulse Oximeter Metrics with patient counts
                         oximeterMetrics.total,
+                        uniqueSpo2Patients,
                         oximeterMetrics.spo2_90_92_count,
                         oximeterMetrics.spo2_90_92_percent,
+                        uniqueSpo2_90_92_Patients,
                         oximeterMetrics.spo2_88_89_count,
                         oximeterMetrics.spo2_88_89_percent,
+                        uniqueSpo2_88_89_Patients,
                         oximeterMetrics.spo2_below_88_count,
                         oximeterMetrics.spo2_below_88_percent,
+                        uniqueSpo2Below88Patients,
 
-                        // Weight Metrics
-                        weightMetrics.total,
-                        weightMetrics.weight_gain_4pct_count,
-                        weightMetrics.weight_gain_4pct_percent,
+                        // Weight Metrics with patient counts
+                        weightMetrics.metrics.total,
+                        uniqueWeightPatients,
+                        weightMetrics.metrics.weight_gain_4pct_count,
+                        weightMetrics.metrics.weight_gain_4pct_percent,
+                        uniqueWeightGain4PctPatients,
 
-                        // Glucose Metrics - Fasting
+                        // Glucose Metrics - Fasting with patient counts
                         fasting.total,
+                        uniqueGlucoseFastingPatients,
                         fasting.above_130_count,
                         fasting.above_130_percent,
+                        uniqueGlucoseFastingAbove130Patients,
                         fasting.above_160_count,
                         fasting.above_160_percent,
+                        uniqueGlucoseFastingAbove160Patients,
                         fasting.above_180_count,
                         fasting.above_180_percent,
+                        uniqueGlucoseFastingAbove180Patients,
                         fasting.below_70_count,
                         fasting.below_70_percent,
+                        uniqueGlucoseFastingBelow70Patients,
                         fasting.below_54_count,
                         fasting.below_54_percent,
+                        uniqueGlucoseFastingBelow54Patients,
 
-                        // Glucose Metrics - Post Meal
+                        // Glucose Metrics - Post Meal with patient counts
                         postMeal.total,
+                        uniqueGlucosePostmealPatients,
                         postMeal.above_180_count,
                         postMeal.above_180_percent,
+                        uniqueGlucosePostmealAbove180Patients,
                         postMeal.above_200_count,
                         postMeal.above_200_percent,
+                        uniqueGlucosePostmealAbove200Patients,
 
-                        // Glucose Metrics - Random
+                        // Glucose Metrics - Random with patient counts
                         randomGlucose.total,
+                        uniqueGlucoseRandomPatients,
                         randomGlucose.above_200_count,
                         randomGlucose.above_200_percent,
+                        uniqueGlucoseRandomAbove200Patients,
                         randomGlucose.below_70_count,
                         randomGlucose.below_70_percent,
+                        uniqueGlucoseRandomBelow70Patients,
 
-                        // Alert Metrics
+                        // Alert Metrics with patient counts
                         alertMetrics.critical_alerts_count,
                         alertMetrics.critical_alerts_percent,
+                        uniqueCriticalAlertsPatients,
                         alertMetrics.escalations_count,
-                        alertMetrics.escalations_percent
+                        alertMetrics.escalations_percent,
+                        uniqueEscalationsPatients
                     ]);
 
+                    // Get the ID of the newly inserted record
+                    summaryId = insertResult.insertId;
                     this.logger.log(`Inserted new clinical metrics for practice ${practiceId} in period ${enrollmentPeriod}`);
                 }
+
+                // After updating/inserting the summary record, store the patient details
+
+                // First, delete any existing patient details for this summary
+                await queryRunner.query(`
+                DELETE FROM clinical_metrics_patient_details
+                WHERE clinical_metrics_summary_id = ?
+            `, [summaryId]);
+
+                // Prepare the values for batch insertion
+                const patientDetailsValues = [];
+
+                // BP patients
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, bpMetricsData.patientDetails.bp_readings, 'bp_reading');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, bpMetricsData.patientDetails.bp_abnormal, 'bp_abnormal');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, bpMetricsData.patientDetails.bp_arrhythmia, 'bp_arrhythmia');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, bpMetricsData.patientDetails.bp_normal, 'bp_normal');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, bpMetricsData.patientDetails.bp_sys_gt_130_dia_gt_80, 'bp_sys_gt_130_dia_gt_80');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, bpMetricsData.patientDetails.bp_sys_gt_140_dia_gt_80, 'bp_sys_gt_140_dia_gt_80');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, bpMetricsData.patientDetails.bp_sys_gt_150_dia_gt_80, 'bp_sys_gt_150_dia_gt_80');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, bpMetricsData.patientDetails.bp_sys_gt_160_dia_gt_80, 'bp_sys_gt_160_dia_gt_80');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, bpMetricsData.patientDetails.bp_sys_lt_90_dia_lt_60, 'bp_sys_lt_90_dia_lt_60');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, bpMetricsData.patientDetails.bp_hr_abnormal, 'bp_hr_abnormal');
+
+                // Oximeter patients
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, oximeterMetricsData.patientDetails.spo2_readings, 'spo2_reading');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, oximeterMetricsData.patientDetails.spo2_90_92, 'spo2_90_92');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, oximeterMetricsData.patientDetails.spo2_88_89, 'spo2_88_89');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, oximeterMetricsData.patientDetails.spo2_below_88, 'spo2_below_88');
+
+                // Weight patients
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, weightMetricsData.patientDetails.weight_readings, 'weight_reading');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, weightMetricsData.patientDetails.weight_gain_4pct, 'weight_gain_4pct');
+
+                // Glucose patients - fasting
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.fasting.readings, 'glucose_fasting');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.fasting.above_130, 'glucose_fasting_above_130');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.fasting.above_160, 'glucose_fasting_above_160');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.fasting.above_180, 'glucose_fasting_above_180');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.fasting.below_70, 'glucose_fasting_below_70');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.fasting.below_54, 'glucose_fasting_below_54');
+
+                // Glucose patients - post meal
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.post_meal.readings, 'glucose_postmeal');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.post_meal.above_180, 'glucose_postmeal_above_180');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.post_meal.above_200, 'glucose_postmeal_above_200');
+
+                // Glucose patients - random
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.random.readings, 'glucose_random');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.random.above_200, 'glucose_random_above_200');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.random.below_70, 'glucose_random_below_70');
+
+                // Alert patients
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, alertMetricsData.patientDetails.critical_alerts, 'critical_alert');
+                this.addPatientDetailsToValues(patientDetailsValues, summaryId, alertMetricsData.patientDetails.escalations, 'escalation');
+
+                // Insert patient details in batches for better performance
+                if (patientDetailsValues.length > 0) {
+                    const batchSize = 1000; // Adjust based on database performance
+
+                    for (let i = 0; i < patientDetailsValues.length; i += batchSize) {
+                        const batch = patientDetailsValues.slice(i, i + batchSize);
+                        const placeholders = batch.map(() => '(?, ?, ?, ?, ?)').join(', ');
+                        const flatValues = batch.flat();
+
+                        await queryRunner.query(`
+                        INSERT INTO clinical_metrics_patient_details (
+                            clinical_metrics_summary_id,
+                            patient_sub,
+                            metric_name,
+                            metric_value,
+                            reading_timestamp
+                        ) VALUES ${placeholders}
+                    `, flatValues);
+                    }
+
+                    this.logger.log(`Stored ${patientDetailsValues.length} patient detail records for summary ID ${summaryId}`);
+                }
+
+                await queryRunner.commitTransaction();
+            } catch (error) {
+                await queryRunner.rollbackTransaction();
+                throw error;
             } finally {
                 // Release the query runner
                 await queryRunner.release();
@@ -1738,6 +2053,26 @@ export class ClinicalMetricsEtlService {
         } catch (error) {
             this.logger.error(`Error storing clinical metrics: ${error.message}`);
             throw error;
+        }
+    }
+
+    /**
+     * Helper method to add patient details to the values array for batch insert
+     */
+    private addPatientDetailsToValues(
+        valuesArray: any[],
+        summaryId: number,
+        patientDetails: PatientMetricDetail[],
+        metricName: string
+    ): void {
+        for (const detail of patientDetails) {
+            valuesArray.push([
+                summaryId,
+                detail.patient_sub,
+                metricName,
+                detail.metric_value || null,
+                detail.reading_timestamp || null
+            ]);
         }
     }
 }
