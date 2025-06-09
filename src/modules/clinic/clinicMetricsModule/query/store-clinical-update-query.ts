@@ -107,6 +107,9 @@ export const updateQuery = `
                         escalations_count                  = ?,
                         escalations_percent                = ?,
                         escalations_patients_count         = ?,
+                        total_alerts_count                 = ?,
+                        total_alerts_percent               = ?,
+                        total_alerts_patients_count        = ?,
 
                         updated_at                         = CURRENT_TIMESTAMP
                     WHERE id = ?

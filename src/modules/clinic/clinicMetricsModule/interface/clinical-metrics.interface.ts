@@ -100,13 +100,16 @@ export interface AlertMetrics {
     critical_alerts_percent: number;
     escalations_count: number;
     escalations_percent: number;
+    total_alerts_count: number;
+    total_alerts_percent: number;
+    total_alerts_patients_count: number;
 }
 
 // Add new interfaces for patient details
 
 export interface PatientMetricDetail {
     patient_sub: string;
-    metric_value?: number;
+    metric_value_detailed: object;
     reading_timestamp?: Date;
 }
 
@@ -169,6 +172,7 @@ export interface GlucosePatientDetails {
 // Interface for alert patient details
 export interface AlertPatientDetails {
     critical_alerts: PatientMetricDetail[];
+    total_alerts: PatientMetricDetail[];
     escalations: PatientMetricDetail[];
 }
 

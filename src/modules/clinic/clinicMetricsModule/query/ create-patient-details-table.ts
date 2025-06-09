@@ -3,7 +3,8 @@ export const createPatientDetailsTable = `CREATE TABLE clinical_metrics_patient_
                         clinical_metrics_summary_id INT NOT NULL,
                         patient_sub VARCHAR(200) NOT NULL,
                         metric_name VARCHAR(100) NOT NULL,
-                        metric_value DECIMAL(10, 2) NULL,
+     
+                        metric_value_detailed JSON NULL,
                         reading_timestamp TIMESTAMP NULL,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

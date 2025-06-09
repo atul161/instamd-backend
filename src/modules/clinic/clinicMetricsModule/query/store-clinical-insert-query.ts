@@ -108,7 +108,10 @@ export const insertQuery = `
                         critical_alerts_patients_count,
                         escalations_count,
                         escalations_percent,
-                        escalations_patients_count
+                        escalations_patients_count,
+                        total_alerts_count,
+                        total_alerts_percent,
+                        total_alerts_patients_count
                     )
                     VALUES (
                         ?, ?, ?, 
@@ -119,6 +122,6 @@ export const insertQuery = `
                         ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                         ?, ?, ?, ?, ?, ?, ?, ?,
                         ?, ?, ?, ?, ?, ?, ?, ?,
-                        ?, ?, ?, ?, ?
+                        ?, ?, ?, ?, ?, ?, ?, ?
                     )
                 `;

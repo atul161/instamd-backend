@@ -153,7 +153,7 @@ export class ClinicalService {
                 const patientsQuery = `
             SELECT 
                 d.patient_sub,
-                d.metric_value,
+                d.metric_value_detailed,
                 d.reading_timestamp,
                 p.firstName,
                 p.lastName
@@ -173,6 +173,22 @@ export class ClinicalService {
                     Number(offset),
                     Number(limit)
                 ]);
+                // prepare
+                for(let i = 0; i < patients.length; i++){
+                    const patient = patients[i];
+                    if (metricName.includes("bp") && patient.metric_value_detailed){
+                        const metaDict = JSON.parse(patient.metric_value_detailed);
+                        const sys = metaDict.sys;
+                        const dia = metaDict.dia;
+                        const hr = metaDict.hr;
+                        const arrhythmia = metaDict.arrhythmia;
+                        patient['systolic'] = sys;
+                        patient['diastolic'] = dia;
+                        patient['heart_rate'] = hr;
+                        patient['arrhythmia'] = arrhythmia;
+                    }
+
+                }
 
                 return {
                     total_patients: totalPatients,

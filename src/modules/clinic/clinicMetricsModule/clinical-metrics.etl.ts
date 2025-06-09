@@ -4,13 +4,19 @@ import {DatabaseService} from '../../database/database.service';
 import * as moment from 'moment';
 
 import {
-    AlertMetricsWithPatients, AlertPatientDetails,
-    BpMetricsWithPatients, BpPatientDetails,
+    AlertMetricsWithPatients,
+    AlertPatientDetails,
+    BpMetricsWithPatients,
+    BpPatientDetails,
     DeviceDataTransmission,
     DeviceReading,
-    GlucoseMetricsWithPatients, GlucosePatientDetails,
-    OximeterMetricsWithPatients, OximeterPatientDetails, PatientMetricDetail,
-    WeightMetricsWithPatients, WeightPatientDetails
+    GlucoseMetricsWithPatients,
+    GlucosePatientDetails,
+    OximeterMetricsWithPatients,
+    OximeterPatientDetails,
+    PatientMetricDetail,
+    WeightMetricsWithPatients,
+    WeightPatientDetails
 } from "./interface/clinical-metrics.interface";
 import {practiceList} from '../patientEnrollmentModule/interface/enrollment-period.interface';
 import {updateQuery} from "./query/store-clinical-update-query";
@@ -23,13 +29,15 @@ import {
     BP_DIA_REGEX,
     BP_HR_REGEX,
     BP_IHB_REGEX,
-    BP_SYS_REGEX, GLUCOSE_REGEX,
+    BP_SYS_REGEX,
+    GLUCOSE_REGEX,
     HEIGHT_REGEX,
     SPO2_PR_REGEX,
-    SPO2_REGEX, TYPE_REGEX,
+    SPO2_REGEX,
+    TYPE_REGEX,
     WEIGHT_REGEX
 } from './enum/regex.constant';
-import {GLUCOSE_RANGES, NORMAL_BP_RANGES, SPO2_RANGES, WEIGHT_CHANGE_THRESHOLD } from './enum/threshold.constant';
+import {GLUCOSE_RANGES, NORMAL_BP_RANGES, SPO2_RANGES, WEIGHT_CHANGE_THRESHOLD} from './enum/threshold.constant';
 
 @Injectable()
 export class ClinicalMetricsEtlService {
@@ -45,7 +53,7 @@ export class ClinicalMetricsEtlService {
     /**
      * Main cron job that runs daily to update clinical metrics
      */
-    @Cron(CronExpression.EVERY_6_HOURS)
+    @Cron(CronExpression.EVERY_10_MINUTES)
     async runDailyClinicalMetricsUpdate() {
         const startTime = new Date();
         this.logger.log(`===== STARTING CLINICAL METRICS ETL at ${startTime} =====`);
@@ -513,21 +521,23 @@ export class ClinicalMetricsEtlService {
                 const hr = metaDict.hr;
                 const arrhythmia = metaDict.arrhythmia;
 
-                // Track unique patient for readings
-                uniquePatients.readings.add(patientSub);
-
                 // Add to patient details for all readings
-                patientDetails.bp_readings.push({
-                    patient_sub: patientSub,
-                    metric_value: sys, // Store systolic as the primary value
-                    reading_timestamp: reading.timestamp
-                });
+                if (sys > 0 || dia > 0 || hr > 0 || arrhythmia > 0) {
+                    // ADD PATIENT
+                    patientDetails.bp_readings.push({
+                        patient_sub: patientSub,
+                        metric_value_detailed: metaDict,
+                        reading_timestamp: reading.timestamp
+                    });
+                    uniquePatients.readings.add(patientSub);
+                }
 
                 if (arrhythmia === 1) {
                     arrhythmiaCount++;
                     uniquePatients.arrhythmia.add(patientSub);
                     patientDetails.bp_arrhythmia.push({
                         patient_sub: patientSub,
+                        metric_value_detailed: metaDict,
                         reading_timestamp: reading.timestamp
                     });
                 }
@@ -557,7 +567,7 @@ export class ClinicalMetricsEtlService {
                     uniquePatients.normal.add(patientSub);
                     patientDetails.bp_normal.push({
                         patient_sub: patientSub,
-                        metric_value: sys,
+                        metric_value_detailed: metaDict,
                         reading_timestamp: reading.timestamp
                     });
                 } else {
@@ -565,7 +575,7 @@ export class ClinicalMetricsEtlService {
                     uniquePatients.abnormal.add(patientSub);
                     patientDetails.bp_abnormal.push({
                         patient_sub: patientSub,
-                        metric_value: sys,
+                        metric_value_detailed: metaDict,
                         reading_timestamp: reading.timestamp
                     });
                 }
@@ -576,7 +586,7 @@ export class ClinicalMetricsEtlService {
                     uniquePatients.sysGt130DiaGt80.add(patientSub);
                     patientDetails.bp_sys_gt_130_dia_gt_80.push({
                         patient_sub: patientSub,
-                        metric_value: sys,
+                        metric_value_detailed: metaDict,
                         reading_timestamp: reading.timestamp
                     });
                 }
@@ -586,7 +596,7 @@ export class ClinicalMetricsEtlService {
                     uniquePatients.sysGt140DiaGt80.add(patientSub);
                     patientDetails.bp_sys_gt_140_dia_gt_80.push({
                         patient_sub: patientSub,
-                        metric_value: sys,
+                        metric_value_detailed: metaDict,
                         reading_timestamp: reading.timestamp
                     });
                 }
@@ -596,7 +606,7 @@ export class ClinicalMetricsEtlService {
                     uniquePatients.sysGt150DiaGt80.add(patientSub);
                     patientDetails.bp_sys_gt_150_dia_gt_80.push({
                         patient_sub: patientSub,
-                        metric_value: sys,
+                        metric_value_detailed: metaDict,
                         reading_timestamp: reading.timestamp
                     });
                 }
@@ -606,7 +616,7 @@ export class ClinicalMetricsEtlService {
                     uniquePatients.sysGt160DiaGt80.add(patientSub);
                     patientDetails.bp_sys_gt_160_dia_gt_80.push({
                         patient_sub: patientSub,
-                        metric_value: sys,
+                        metric_value_detailed: metaDict,
                         reading_timestamp: reading.timestamp
                     });
                 }
@@ -616,7 +626,7 @@ export class ClinicalMetricsEtlService {
                     uniquePatients.sysLt90DiaLt60.add(patientSub);
                     patientDetails.bp_sys_lt_90_dia_lt_60.push({
                         patient_sub: patientSub,
-                        metric_value: sys,
+                        metric_value_detailed: metaDict,
                         reading_timestamp: reading.timestamp
                     });
                 }
@@ -626,7 +636,7 @@ export class ClinicalMetricsEtlService {
                     uniquePatients.hrAbnormal.add(patientSub);
                     patientDetails.bp_hr_abnormal.push({
                         patient_sub: patientSub,
-                        metric_value: hr,
+                        metric_value_detailed: metaDict,
                         reading_timestamp: reading.timestamp
                     });
                 }
@@ -773,15 +783,14 @@ export class ClinicalMetricsEtlService {
                 const spo2 = metaSpo2.spo2;
                 const pr = metaSpo2.pr;
 
-                // Track unique patient for readings
-                uniquePatients.readings.add(patientSub);
-
-                // Add to patient details for all readings
-                patientDetails.spo2_readings.push({
-                    patient_sub: patientSub,
-                    metric_value: spo2,
-                    reading_timestamp: reading.timestamp
-                });
+                if (pr > 0 || spo2 > 0) {
+                    uniquePatients.readings.add(patientSub);
+                    patientDetails.spo2_readings.push({
+                        patient_sub: patientSub,
+                        metric_value_detailed: metaSpo2,
+                        reading_timestamp: reading.timestamp
+                    });
+                } else continue;
 
                 if (spo2 > 0) {
                     // Categorize reading
@@ -790,7 +799,7 @@ export class ClinicalMetricsEtlService {
                         uniquePatients.spo2_90_92.add(patientSub);
                         patientDetails.spo2_90_92.push({
                             patient_sub: patientSub,
-                            metric_value: spo2,
+                            metric_value_detailed: metaSpo2,
                             reading_timestamp: reading.timestamp
                         });
                     } else if (SPO2_RANGES.low_min <= spo2 && spo2 <= SPO2_RANGES.low_max) {
@@ -798,7 +807,7 @@ export class ClinicalMetricsEtlService {
                         uniquePatients.spo2_88_89.add(patientSub);
                         patientDetails.spo2_88_89.push({
                             patient_sub: patientSub,
-                            metric_value: spo2,
+                            metric_value_detailed: metaSpo2,
                             reading_timestamp: reading.timestamp
                         });
                     } else if (spo2 < SPO2_RANGES.critical_low) {
@@ -806,7 +815,7 @@ export class ClinicalMetricsEtlService {
                         uniquePatients.spo2_below_88.add(patientSub);
                         patientDetails.spo2_below_88.push({
                             patient_sub: patientSub,
-                            metric_value: spo2,
+                            metric_value_detailed: metaSpo2,
                             reading_timestamp: reading.timestamp
                         });
                     }
@@ -970,15 +979,6 @@ export class ClinicalMetricsEtlService {
                 patientReadings[patientSub] = [];
             }
             patientReadings[patientSub].push(reading);
-
-            // Track this patient in all readings
-            uniquePatients.readings.add(patientSub);
-
-            // Add to patient details for all readings
-            patientDetails.weight_readings.push({
-                patient_sub: patientSub,
-                reading_timestamp: reading.timestamp
-            });
         }
 
         // Process each patient's readings
@@ -1002,6 +1002,15 @@ export class ClinicalMetricsEtlService {
                     const height = metaWeight.height;
                     const bmi = metaWeight.bmi;
 
+                    if (weight > 0 || height > 0 || bmi > 0) {
+                        patientDetails.weight_readings.push({
+                            patient_sub: patientSub,
+                            reading_timestamp: reading.timestamp,
+                            metric_value_detailed: metaWeight,
+                        });
+                        uniquePatients.readings.add(patientSub);
+                    }
+
                     if (weight > 0) {
                         // Calculate percent change
                         const weightChangePct = ((weight - baselineWeight) / baselineWeight) * 100;
@@ -1016,9 +1025,10 @@ export class ClinicalMetricsEtlService {
                             // Add to patient details for weight gain
                             patientDetails.weight_gain_4pct.push({
                                 patient_sub: patientSub,
-                                metric_value: weight,
+                                metric_value_detailed: metaWeight,
                                 reading_timestamp: reading.timestamp
                             });
+
                         }
                     }
                 } catch (error) {
@@ -1205,7 +1215,7 @@ export class ClinicalMetricsEtlService {
                         uniquePatients.fasting.readings.add(patientSub);
                         patientDetails.fasting.readings.push({
                             patient_sub: patientSub,
-                            metric_value: glucoseValue,
+                            metric_value_detailed: metaGlucose,
                             reading_timestamp: reading.timestamp
                         });
 
@@ -1218,17 +1228,17 @@ export class ClinicalMetricsEtlService {
                             uniquePatients.fasting.above_130.add(patientSub);
                             patientDetails.fasting.above_180.push({
                                 patient_sub: patientSub,
-                                metric_value: glucoseValue,
+                                metric_value_detailed: metaGlucose,
                                 reading_timestamp: reading.timestamp
                             });
                             patientDetails.fasting.above_160.push({
                                 patient_sub: patientSub,
-                                metric_value: glucoseValue,
+                                metric_value_detailed: metaGlucose,
                                 reading_timestamp: reading.timestamp
                             });
                             patientDetails.fasting.above_130.push({
                                 patient_sub: patientSub,
-                                metric_value: glucoseValue,
+                                metric_value_detailed: metaGlucose,
                                 reading_timestamp: reading.timestamp
                             });
                         } else if (glucoseValue > GLUCOSE_RANGES.fasting.very_high_min) {
@@ -1238,12 +1248,12 @@ export class ClinicalMetricsEtlService {
                             uniquePatients.fasting.above_130.add(patientSub);
                             patientDetails.fasting.above_160.push({
                                 patient_sub: patientSub,
-                                metric_value: glucoseValue,
+                                metric_value_detailed: metaGlucose,
                                 reading_timestamp: reading.timestamp
                             });
                             patientDetails.fasting.above_130.push({
                                 patient_sub: patientSub,
-                                metric_value: glucoseValue,
+                                metric_value_detailed: metaGlucose,
                                 reading_timestamp: reading.timestamp
                             });
                         } else if (glucoseValue > GLUCOSE_RANGES.fasting.high_min) {
@@ -1251,7 +1261,7 @@ export class ClinicalMetricsEtlService {
                             uniquePatients.fasting.above_130.add(patientSub);
                             patientDetails.fasting.above_130.push({
                                 patient_sub: patientSub,
-                                metric_value: glucoseValue,
+                                metric_value_detailed: metaGlucose,
                                 reading_timestamp: reading.timestamp
                             });
                         }
@@ -1263,12 +1273,12 @@ export class ClinicalMetricsEtlService {
                             uniquePatients.fasting.below_70.add(patientSub);
                             patientDetails.fasting.below_54.push({
                                 patient_sub: patientSub,
-                                metric_value: glucoseValue,
+                                metric_value_detailed: metaGlucose,
                                 reading_timestamp: reading.timestamp
                             });
                             patientDetails.fasting.below_70.push({
                                 patient_sub: patientSub,
-                                metric_value: glucoseValue,
+                                metric_value_detailed: metaGlucose,
                                 reading_timestamp: reading.timestamp
                             });
                         } else if (glucoseValue < GLUCOSE_RANGES.fasting.low_max) {
@@ -1276,7 +1286,7 @@ export class ClinicalMetricsEtlService {
                             uniquePatients.fasting.below_70.add(patientSub);
                             patientDetails.fasting.below_70.push({
                                 patient_sub: patientSub,
-                                metric_value: glucoseValue,
+                                metric_value_detailed: metaGlucose,
                                 reading_timestamp: reading.timestamp
                             });
                         }
@@ -1285,7 +1295,7 @@ export class ClinicalMetricsEtlService {
                         uniquePatients.post_meal.readings.add(patientSub);
                         patientDetails.post_meal.readings.push({
                             patient_sub: patientSub,
-                            metric_value: glucoseValue,
+                            metric_value_detailed: metaGlucose,
                             reading_timestamp: reading.timestamp
                         });
 
@@ -1296,12 +1306,12 @@ export class ClinicalMetricsEtlService {
                             uniquePatients.post_meal.above_180.add(patientSub);
                             patientDetails.post_meal.above_200.push({
                                 patient_sub: patientSub,
-                                metric_value: glucoseValue,
+                                metric_value_detailed: metaGlucose,
                                 reading_timestamp: reading.timestamp
                             });
                             patientDetails.post_meal.above_180.push({
                                 patient_sub: patientSub,
-                                metric_value: glucoseValue,
+                                metric_value_detailed: metaGlucose,
                                 reading_timestamp: reading.timestamp
                             });
                         } else if (glucoseValue > GLUCOSE_RANGES.post_meal.high_min) {
@@ -1309,7 +1319,7 @@ export class ClinicalMetricsEtlService {
                             uniquePatients.post_meal.above_180.add(patientSub);
                             patientDetails.post_meal.above_180.push({
                                 patient_sub: patientSub,
-                                metric_value: glucoseValue,
+                                metric_value_detailed: metaGlucose,
                                 reading_timestamp: reading.timestamp
                             });
                         }
@@ -1318,7 +1328,7 @@ export class ClinicalMetricsEtlService {
                         uniquePatients.random.readings.add(patientSub);
                         patientDetails.random.readings.push({
                             patient_sub: patientSub,
-                            metric_value: glucoseValue,
+                            metric_value_detailed: metaGlucose,
                             reading_timestamp: reading.timestamp
                         });
 
@@ -1327,7 +1337,7 @@ export class ClinicalMetricsEtlService {
                             uniquePatients.random.above_200.add(patientSub);
                             patientDetails.random.above_200.push({
                                 patient_sub: patientSub,
-                                metric_value: glucoseValue,
+                                metric_value_detailed: metaGlucose,
                                 reading_timestamp: reading.timestamp
                             });
                         }
@@ -1337,7 +1347,7 @@ export class ClinicalMetricsEtlService {
                             uniquePatients.random.below_70.add(patientSub);
                             patientDetails.random.below_70.push({
                                 patient_sub: patientSub,
-                                metric_value: glucoseValue,
+                                metric_value_detailed: metaGlucose,
                                 reading_timestamp: reading.timestamp
                             });
                         }
@@ -1413,11 +1423,15 @@ export class ClinicalMetricsEtlService {
                     critical_alerts_count: 0,
                     critical_alerts_percent: 0,
                     escalations_count: 0,
-                    escalations_percent: 0
+                    escalations_percent: 0,
+                    total_alerts_count: 0,
+                    total_alerts_percent: 0,
+                    total_alerts_patients_count: 0
                 },
                 patientDetails: {
                     critical_alerts: [],
-                    escalations: []
+                    escalations: [],
+                    total_alerts: []
                 }
             };
         }
@@ -1425,13 +1439,20 @@ export class ClinicalMetricsEtlService {
         // Use BigInt for accumulating counts to prevent integer overflow
         let totalReadings = 0n;
         let criticalAlerts = 0n;
+        let outOfRangeAlerts = 0n;
         let escalations = 0n;
 
         // Track patient details for alerts
         const patientDetails: AlertPatientDetails = {
             critical_alerts: [],
-            escalations: []
+            escalations: [],
+            total_alerts: []
         };
+
+        // Track unique patient sets
+        const criticalAlertPatients = new Set<string>();
+        const escalationPatients = new Set<string>();
+        const totalAlertPatients = new Set<string>();
 
         // Split patient_ids into manageable chunks
         const patientChunks = this.chunkArray(patientIds, this.CHUNK_SIZE);
@@ -1461,11 +1482,11 @@ export class ClinicalMetricsEtlService {
 
                     // Count total readings
                     const totalQuery = `
-                    SELECT COUNT(*) as total_count
-                    FROM device_data_transmission
-                    WHERE trim(patient_sub) IN (${placeholders})
-                        ${dateConditions}
-                `;
+                        SELECT COUNT(*) as total_count
+                        FROM device_data_transmission
+                        WHERE trim(patient_sub) IN (${placeholders})
+                            ${dateConditions}
+                    `;
 
                     const totalResult = await queryRunner.query(totalQuery, baseParams);
                     // Convert string to BigInt to safely handle large numbers
@@ -1474,16 +1495,15 @@ export class ClinicalMetricsEtlService {
 
                     // Get critical alerts
                     const criticalQuery = `
-                    SELECT 
-                        patient_sub,
-                        timestamp,
-                        device_name,
-                        detailed_value
-                    FROM device_data_transmission
-                    WHERE trim(patient_sub) IN (${placeholders})
-                      AND critical_alert = 1
-                        ${dateConditions}
-                `;
+                        SELECT patient_sub,
+                               timestamp,
+                               device_name,
+                               detailed_value
+                        FROM device_data_transmission
+                        WHERE trim(patient_sub) IN (${placeholders})
+                          AND critical_alert = 1
+                            ${dateConditions}
+                    `;
 
                     const criticalResults = await queryRunner.query(criticalQuery, baseParams);
                     const chunkCritical = BigInt(String(criticalResults.length || '0'));
@@ -1493,48 +1513,50 @@ export class ClinicalMetricsEtlService {
                     for (const alert of criticalResults) {
                         patientDetails.critical_alerts.push({
                             patient_sub: alert.patient_sub,
-                            reading_timestamp: alert.timestamp
+                            reading_timestamp: alert.timestamp,
+                            metric_value_detailed: {"value": 1}
                         });
+                        criticalAlertPatients.add(alert.patient_sub);
                     }
 
                     // Get out of range alerts
                     const outOfRangeQuery = `
-                    SELECT 
-                        patient_sub,
-                        timestamp,
-                        device_name,
-                        detailed_value
-                    FROM device_data_transmission
-                    WHERE trim(patient_sub) IN (${placeholders})
-                      AND out_of_range_alert = 1
-                        ${dateConditions}
-                `;
+                        SELECT patient_sub,
+                               timestamp,
+                               device_name,
+                               detailed_value
+                        FROM device_data_transmission
+                        WHERE trim(patient_sub) IN (${placeholders})
+                          AND out_of_range_alert = 1
+                            ${dateConditions}
+                    `;
 
                     const outOfRangeResults = await queryRunner.query(outOfRangeQuery, baseParams);
                     const chunkOutOfRange = BigInt(String(outOfRangeResults.length || '0'));
-                    criticalAlerts += chunkOutOfRange;
+                    outOfRangeAlerts += chunkOutOfRange;
 
                     // Add to patient details for out of range alerts
                     for (const alert of outOfRangeResults) {
-                        patientDetails.critical_alerts.push({
+                        patientDetails.total_alerts.push({
                             patient_sub: alert.patient_sub,
-                            reading_timestamp: alert.timestamp
+                            reading_timestamp: alert.timestamp,
+                            metric_value_detailed: {"value": 1}
                         });
+                        totalAlertPatients.add(alert.patient_sub);
                     }
 
                     // Get escalations (external alerts)
                     const escalationQuery = `
-                    SELECT 
-                        patient_sub,
-                        timestamp,
-                        device_name,
-                        detailed_value,
-                        ext_alert_comments
-                    FROM device_data_transmission
-                    WHERE trim(patient_sub) IN (${placeholders})
-                      AND ext_alert = 1
-                        ${dateConditions}
-                `;
+                        SELECT patient_sub,
+                               timestamp,
+                               device_name,
+                               detailed_value,
+                               ext_alert_comments
+                        FROM device_data_transmission
+                        WHERE trim(patient_sub) IN (${placeholders})
+                          AND ext_alert = 1
+                            ${dateConditions}
+                    `;
 
                     const escalationResults = await queryRunner.query(escalationQuery, baseParams);
                     const chunkEscalations = BigInt(String(escalationResults.length || '0'));
@@ -1544,8 +1566,10 @@ export class ClinicalMetricsEtlService {
                     for (const alert of escalationResults) {
                         patientDetails.escalations.push({
                             patient_sub: alert.patient_sub,
-                            reading_timestamp: alert.timestamp
+                            reading_timestamp: alert.timestamp,
+                            metric_value_detailed: {"value": 1},
                         });
+                        escalationPatients.add(alert.patient_sub);
                     }
 
                 } finally {
@@ -1554,19 +1578,23 @@ export class ClinicalMetricsEtlService {
             }
 
             // Log the raw BigInt values before conversion
-            this.logger.log(`Raw BigInt counts - totalReadings: ${totalReadings}, criticalAlerts: ${criticalAlerts}, escalations: ${escalations}`);
+            this.logger.log(`Raw BigInt counts - totalReadings: ${totalReadings}, criticalAlerts: ${criticalAlerts}, outOfRangeAlerts: ${outOfRangeAlerts}, escalations: ${escalations}`);
 
             // Convert BigInt to Number for the final result
             const totalReadingsNum = Number(totalReadings);
             const criticalAlertsNum = Number(criticalAlerts);
+            const outOfRangeAlertsNum = Number(outOfRangeAlerts);
             const escalationsNum = Number(escalations);
+            const totalAlertsNum = outOfRangeAlertsNum;
 
             // Calculate percentages
             const criticalAlertsPercent = totalReadingsNum > 0 ? (criticalAlertsNum / totalReadingsNum * 100) : 0;
             const escalationsPercent = totalReadingsNum > 0 ? (escalationsNum / totalReadingsNum * 100) : 0;
+            const totalAlertsPercent = totalReadingsNum > 0 ? (outOfRangeAlertsNum / totalReadingsNum * 100) : 0;
 
             // Log the final calculated values
-            this.logger.log(`Final counts - totalReadings: ${totalReadingsNum}, criticalAlerts: ${criticalAlertsNum}, escalations: ${escalationsNum}`);
+            this.logger.log(`Final counts - totalReadings: ${totalReadingsNum}, criticalAlerts: ${criticalAlertsNum}, outOfRangeAlerts: ${outOfRangeAlertsNum}, totalAlerts: ${totalAlertsNum}, escalations: ${escalationsNum}`);
+            this.logger.log(`Patient counts - criticalAlertPatients: ${criticalAlertPatients.size}, escalationPatients: ${escalationPatients.size}, totalAlertPatients: ${totalAlertPatients.size}`);
 
             return {
                 metrics: {
@@ -1574,7 +1602,10 @@ export class ClinicalMetricsEtlService {
                     critical_alerts_count: criticalAlertsNum,
                     critical_alerts_percent: parseFloat(criticalAlertsPercent.toFixed(2)),
                     escalations_count: escalationsNum,
-                    escalations_percent: parseFloat(escalationsPercent.toFixed(2))
+                    escalations_percent: parseFloat(escalationsPercent.toFixed(2)),
+                    total_alerts_count: outOfRangeAlertsNum,
+                    total_alerts_percent: parseFloat(totalAlertsPercent.toFixed(2)),
+                    total_alerts_patients_count: totalAlertPatients.size
                 },
                 patientDetails: patientDetails
             };
@@ -1587,19 +1618,21 @@ export class ClinicalMetricsEtlService {
                     critical_alerts_count: 0,
                     critical_alerts_percent: 0,
                     escalations_count: 0,
-                    escalations_percent: 0
+                    escalations_percent: 0,
+                    total_alerts_count: 0,
+                    total_alerts_percent: 0,
+                    total_alerts_patients_count: 0
                 },
                 patientDetails: {
                     critical_alerts: [],
-                    escalations: []
+                    escalations: [],
+                    total_alerts: []
                 }
             };
         }
     }
 
-    /**
-     * Store calculated clinical metrics in the database
-     */
+
     /**
      * Store calculated clinical metrics in the database
      * Modified to avoid long-running transactions
@@ -1659,6 +1692,8 @@ export class ClinicalMetricsEtlService {
             // Calculate unique patient counts for alert metrics
             const uniqueCriticalAlertsPatients = new Set(alertMetricsData.patientDetails.critical_alerts.map(p => p.patient_sub)).size;
             const uniqueEscalationsPatients = new Set(alertMetricsData.patientDetails.escalations.map(p => p.patient_sub)).size;
+            const uniqueTotalAlertsPatients = new Set(alertMetricsData.patientDetails.total_alerts.map(p => p.patient_sub)).size;
+
 
             // Step 1: Check if record exists and get ID or create new record
             // This is a relatively small operation, so should complete quickly
@@ -1792,6 +1827,10 @@ export class ClinicalMetricsEtlService {
                         alertMetrics.escalations_count,
                         alertMetrics.escalations_percent,
                         uniqueEscalationsPatients,
+                        alertMetrics.total_alerts_count,
+                        alertMetrics.total_alerts_percent,
+                        uniqueTotalAlertsPatients,
+
 
                         // Record ID
                         summaryId
@@ -1910,7 +1949,10 @@ export class ClinicalMetricsEtlService {
                         uniqueCriticalAlertsPatients,
                         alertMetrics.escalations_count,
                         alertMetrics.escalations_percent,
-                        uniqueEscalationsPatients
+                        uniqueEscalationsPatients,
+                        alertMetrics.total_alerts_count,
+                        alertMetrics.total_alerts_percent,
+                        uniqueTotalAlertsPatients,
                     ]);
 
                     // Get the ID of the newly inserted record
@@ -1987,26 +2029,34 @@ export class ClinicalMetricsEtlService {
 
             // Step 4: Insert patient details in small batches (no transaction)
             // Using much smaller batch size to prevent lock timeouts
-            const batchSize = 100; // Reduced from 1000 for faster individual operations
+            const batchSize = 300; // Reduced from 1000 for faster individual operations
 
             this.logger.log(`Processing ${patientDetailsValues.length} patient detail records in batches of ${batchSize}`);
 
             for (let i = 0; i < patientDetailsValues.length; i += batchSize) {
                 const batch = patientDetailsValues.slice(i, i + batchSize);
                 const placeholders = batch.map(() => '(?, ?, ?, ?, ?)').join(', ');
-                const flatValues = batch.flat();
-
+                const flatValues = [];
+                for (const item of batch) {
+                    flatValues.push(
+                        item[0], // summaryId
+                        item[1], // patient_sub
+                        item[2], // metricName
+                        typeof item[3] === 'object' ? JSON.stringify(item[3]) : item[3], // Ensure JSON is stringified
+                        item[4] // reading_timestamp
+                    );
+                }
                 const batchRunner = dataSource.createQueryRunner();
+
                 try {
                     await batchRunner.query(`
-                    INSERT INTO clinical_metrics_patient_details (
-                        clinical_metrics_summary_id,
-                        patient_sub,
-                        metric_name,
-                        metric_value,
-                        reading_timestamp
-                    ) VALUES ${placeholders}
-                `, flatValues);
+                        INSERT INTO clinical_metrics_patient_details (clinical_metrics_summary_id,
+                                                                      patient_sub,
+                                                                      metric_name,
+                                                                      metric_value_detailed,
+                                                                      reading_timestamp)
+                        VALUES ${placeholders}
+                    `, flatValues);
 
                     // Log progress every 20 batches (2000 records)
                     if (i % (batchSize * 20) === 0) {
@@ -2037,12 +2087,13 @@ export class ClinicalMetricsEtlService {
         metricName: string
     ): void {
         for (const detail of patientDetails) {
+            if (!detail?.metric_value_detailed || !detail.reading_timestamp) continue;
             valuesArray.push([
                 summaryId,
                 detail.patient_sub,
                 metricName,
-                detail.metric_value || null,
-                detail.reading_timestamp || null
+                detail.metric_value_detailed,
+                detail.reading_timestamp
             ]);
         }
     }

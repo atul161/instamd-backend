@@ -1,5 +1,5 @@
 export const createClinicalSummaryTable=
-     `CREATE TABLE clinical_metrics_summary
+    `CREATE TABLE clinical_metrics_summary
                         (
                             id                                 INT AUTO_INCREMENT PRIMARY KEY,
                             summary_date                       DATE         NOT NULL,
@@ -141,6 +141,10 @@ export const createClinicalSummaryTable=
                             escalations_percent                DECIMAL(5, 2) DEFAULT 0,
                             -- 
                             escalations_patients_count         INT           DEFAULT 0,
+                            total_alerts_count                 INT           DEFAULT 0,
+                            total_alerts_percent               DECIMAL(5, 2) DEFAULT 0,
+                            -- 
+                            total_alerts_patients_count        INT           DEFAULT 0,
 
                             created_at                         TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
                             updated_at                         TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

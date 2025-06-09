@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Logger, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import { Controller, Get, Param, Query, Logger, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import {ClinicalService} from "./clinical.service";
 
