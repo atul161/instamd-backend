@@ -44,11 +44,7 @@ export class ClinicalMetricsEtlService {
     private readonly logger = new Logger(ClinicalMetricsEtlService.name);
     private readonly CHUNK_SIZE = 500; // Adjust based on database performance
 
-    constructor(
-        @Inject()
-        private databaseService: DatabaseService,
-    ) {
-    }
+    constructor(@Inject() private databaseService: DatabaseService) {}
 
     /**
      * Main cron job that runs daily to update clinical metrics

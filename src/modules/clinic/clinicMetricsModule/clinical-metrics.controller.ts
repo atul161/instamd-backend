@@ -53,4 +53,19 @@ export class ClinicalMetricsController {
         );
     }
 
+    @Get(':practiceId/patient/:patientId')
+    async getPatientDetails(
+        @Param('practiceId') practiceId: string,
+        @Param('patientId') patientId?: string,
+    ) {
+        if (!practiceId) {
+            throw new NotFoundException('Invalid practice ID');
+        }
+        console.log(patientId);
+        return this.clinicalService.getPatientDetails(
+            practiceId,
+            patientId,
+        );
+    }
+
 }

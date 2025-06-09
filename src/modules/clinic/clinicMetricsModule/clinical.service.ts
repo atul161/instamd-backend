@@ -206,4 +206,90 @@ export class ClinicalService {
         }
     }
 
+
+    async getPatientDetails(practiceId: string, patientSub: string): Promise<any> {
+        try {
+            this.logger.log(`Fetching patient details for practice: ${practiceId} and patient: ${patientSub}`);
+
+            // Validate practice ID
+            const practiceConfig = this.databaseService.getPracticeConfig(practiceId);
+            if (!practiceConfig) {
+                throw new NotFoundException(`Practice with ID ${practiceId} not found`);
+            }
+            const patientId = patientSub.trim();
+
+            // Get connection
+            const dataSource = await this.databaseService.getConnection(practiceId);
+            const queryRunner = dataSource.createQueryRunner();
+
+            try {
+                // Connect to the database
+                await queryRunner.connect();
+
+                // Query patient information from patient table with only relevant fields
+                const patientQuery = `
+                    SELECT
+                        sub,
+                        firstName,
+                        lastName,
+                        email,
+                        gender,
+                        phone_number,
+                        address,
+                        mrn,
+                        home_address1,
+                        home_city,
+                        home_state,
+                        home_pin,
+                        p_timezone,
+                        p_language,
+                        enrollDate,
+                        currentMedication,
+                        height,
+                        modules,
+                        title,
+                        specialty,
+                        note,
+                        lace_risk,
+                        ascvd_risk,
+                        stroke_risk,
+                        register_status,
+                        is_eligibled
+                    FROM patient
+                    WHERE TRIM(REPLACE(sub, '-', '_')) = ?
+                `;
+                const patientResults = await queryRunner.query(patientQuery, [patientId]);
+
+                if (!patientResults || patientResults.length === 0) {
+                    throw new NotFoundException(`Patient with ID ${patientSub} not found`);
+                }
+
+                // Return only the patient information
+                return {
+                    status: 'success',
+                    data: patientResults[0],
+                    metadata: {
+                        timestamp: new Date().toISOString(),
+                        practiceId: practiceId
+                    }
+                };
+
+            } catch (error) {
+                this.logger.error(`Error in database operations: ${error.message}`);
+                throw error;
+            } finally {
+                // Always release the query runner
+                await queryRunner.release();
+            }
+        } catch (error) {
+            this.logger.error(`Error fetching patient details: ${error.message}`);
+
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+
+            throw new InternalServerErrorException('Failed to retrieve patient details');
+        }
+    }
+
 }
