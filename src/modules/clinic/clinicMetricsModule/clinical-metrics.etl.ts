@@ -465,6 +465,8 @@ export class ClinicalMetricsEtlService {
         let sysGt160DiaGt80Count = 0;
         let sysLt90DiaLt60Count = 0;
         let hrAbnormalCount = 0;
+        let totalPatients = 0;
+        let normalCount = 0;
 
         // Track patient details for each category
         const patientDetails: BpPatientDetails = {
@@ -511,11 +513,15 @@ export class ClinicalMetricsEtlService {
                 const metaDict = this.parseBpValue(reading.detailed_value);
                 const patientSub = reading.patient_sub;
 
+
                 // Extract values
                 const sys = metaDict.sys;
                 const dia = metaDict.dia;
                 const hr = metaDict.hr;
                 const arrhythmia = metaDict.arrhythmia;
+                if(sys === 0 && dia === 0 && hr === 0 && arrhythmia === 0) {
+                    continue;
+                }
 
                 // Add to patient details for all readings
                 if (sys > 0 || dia > 0 || hr > 0 || arrhythmia > 0) {
@@ -526,6 +532,7 @@ export class ClinicalMetricsEtlService {
                         reading_timestamp: reading.timestamp
                     });
                     uniquePatients.readings.add(patientSub);
+                    totalPatients++;
                 }
 
                 if (arrhythmia === 1) {
@@ -561,6 +568,7 @@ export class ClinicalMetricsEtlService {
                     normalDiaValues.push(dia);
                     normalHrValues.push(hr);
                     uniquePatients.normal.add(patientSub);
+                    normalCount++;
                     patientDetails.bp_normal.push({
                         patient_sub: patientSub,
                         metric_value_detailed: metaDict,
@@ -651,7 +659,7 @@ export class ClinicalMetricsEtlService {
         const normalAvgDia = normalDiaValues.length > 0 ? normalDiaValues.reduce((a, b) => a + b, 0) / normalDiaValues.length : 0;
         const normalAvgHr = normalHrValues.length > 0 ? normalHrValues.reduce((a, b) => a + b, 0) / normalHrValues.length : 0;
 
-        const normalCount = totalReadings - abnormalReadings;
+
 
         // Calculate percentages
         const abnormalPercent = totalReadings > 0 ? (abnormalReadings / totalReadings * 100) : 0;
