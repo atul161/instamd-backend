@@ -1,9 +1,8 @@
-import { Controller, Get, Param, Query, Logger, NotFoundException, UseInterceptors, Inject } from '@nestjs/common';
-import { CacheInterceptor, CacheTTL, CacheKey } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { DatabaseService } from '../../database/database.service';
-import { ClinicalService } from "./clinical.service";
+import {Controller, Get, Inject, Logger, NotFoundException, Param, Query, UseInterceptors} from '@nestjs/common';
+import {CACHE_MANAGER, CacheInterceptor, CacheTTL} from '@nestjs/cache-manager';
+import {Cache} from 'cache-manager';
+import {DatabaseService} from '../../database/database.service';
+import {ClinicalService} from "./clinical.service";
 
 const CACHE_TIME = 300000 * 12 * 24
 @Controller('clinical-metrics')
@@ -56,8 +55,6 @@ export class ClinicalMetricsController {
     }
 
     @Get(':practiceId/patients/:metricName')
-    @UseInterceptors(CacheInterceptor)
-    @CacheTTL(CACHE_TIME)
     async getPatientsByMetric(
         @Param('practiceId') practiceId: string,
         @Param('metricName') metricName: string,
@@ -69,25 +66,13 @@ export class ClinicalMetricsController {
             throw new NotFoundException('Invalid practice ID');
         }
 
-        const cacheKey = `patients-by-metric:${practiceId}:${metricName}:${period || 'all'}:${page || 1}:${limit || 50}`;
-        const cachedData = await this.cacheManager.get(cacheKey);
-
-        if (cachedData) {
-            this.logger.log(`Returning cached patients by metric for practice: ${practiceId}, metric: ${metricName}`);
-            return cachedData;
-        }
-
-        const result = await this.clinicalService.getPatientsByMetric(
+        return await this.clinicalService.getPatientsByMetric(
             practiceId,
             metricName,
             period,
             page || 1,
             limit || 50
         );
-
-        await this.cacheManager.set(cacheKey, result,  CACHE_TIME);
-
-        return result;
     }
 
     @Get(':practiceId/patient/:patientId')
