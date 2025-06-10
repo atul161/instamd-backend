@@ -50,7 +50,7 @@ export class ClinicalMetricsController {
         const result = await this.clinicalService.getClinicalMetrics(practiceId, period, startDate, endDate);
 
         // Store in cache
-        await this.cacheManager.set(cacheKey, result, 300000); // 5 minutes cache
+        await this.cacheManager.set(cacheKey, result, CACHE_TIME);
 
         return result;
     }
@@ -85,7 +85,7 @@ export class ClinicalMetricsController {
             limit || 50
         );
 
-        await this.cacheManager.set(cacheKey, result, 180000);
+        await this.cacheManager.set(cacheKey, result,  CACHE_TIME);
 
         return result;
     }
@@ -115,7 +115,7 @@ export class ClinicalMetricsController {
             patientId,
         );
 
-        await this.cacheManager.set(cacheKey, result, 300000);
+        await this.cacheManager.set(cacheKey, result,  CACHE_TIME);
 
         return result;
     }
