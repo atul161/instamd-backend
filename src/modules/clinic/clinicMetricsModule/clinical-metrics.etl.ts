@@ -49,7 +49,7 @@ export class ClinicalMetricsEtlService {
     /**
      * Main cron job that runs daily to update clinical metrics
      */
-    @Cron(CronExpression.EVERY_6_HOURS)
+    @Cron(CronExpression.EVERY_3_HOURS)
     async runDailyClinicalMetricsUpdate() {
         const startTime = new Date();
         this.logger.log(`===== STARTING CLINICAL METRICS ETL at ${startTime} =====`);
@@ -2092,9 +2092,12 @@ export class ClinicalMetricsEtlService {
     ): void {
         for (const detail of patientDetails) {
             if (!detail?.metric_value_detailed || !detail.reading_timestamp) continue;
+            let patientSub = detail.patient_sub.toString().trim();
+            // '-', '_'
+            const replacedPatientId = patientSub.replace(/_/g, "-");
             valuesArray.push([
                 summaryId,
-                detail.patient_sub,
+                replacedPatientId,
                 metricName,
                 detail.metric_value_detailed,
                 detail.reading_timestamp

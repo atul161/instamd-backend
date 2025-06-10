@@ -24,8 +24,8 @@ export class ClinicalMetricsController {
      * @param endDate Optional end date for filtering data (YYYY-MM-DD)
      */
     @Get(':practiceId')
-    @UseInterceptors(CacheInterceptor)
-    @CacheTTL(CACHE_TIME)
+    // @UseInterceptors(CacheInterceptor)
+    // @CacheTTL(CACHE_TIME)
     async getClinicalMetrics(
         @Param('practiceId') practiceId: string,
         @Query('period') period?: string,
@@ -36,20 +36,20 @@ export class ClinicalMetricsController {
             throw new NotFoundException('Invalid practice ID');
         }
 
-        const cacheKey = `clinical-metrics:${practiceId}:${period || 'all'}:${startDate || 'none'}:${endDate || 'none'}`;
-
-        // Check if data exists in cache
-        const cachedData = await this.cacheManager.get(cacheKey);
-        if (cachedData) {
-            this.logger.log(`Returning cached clinical metrics for practice: ${practiceId}`);
-            return cachedData;
-        }
+        // const cacheKey = `clinical-metrics:${practiceId}:${period || 'all'}:${startDate || 'none'}:${endDate || 'none'}`;
+        //
+        // // Check if data exists in cache
+        // const cachedData = await this.cacheManager.get(cacheKey);
+        // if (cachedData) {
+        //     this.logger.log(`Returning cached clinical metrics for practice: ${practiceId}`);
+        //     return cachedData;
+        // }
 
         // If not in cache, get fresh data
         const result = await this.clinicalService.getClinicalMetrics(practiceId, period, startDate, endDate);
 
-        // Store in cache
-        await this.cacheManager.set(cacheKey, result, CACHE_TIME);
+        // // Store in cache
+        // await this.cacheManager.set(cacheKey, result, CACHE_TIME);
 
         return result;
     }

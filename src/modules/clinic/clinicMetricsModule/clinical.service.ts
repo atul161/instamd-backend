@@ -158,7 +158,7 @@ export class ClinicalService {
                 p.firstName,
                 p.lastName
             FROM clinical_metrics_patient_details d
-            LEFT JOIN patient p ON Trim(d.patient_sub) = TRIM(replace(p.sub, '-', '_'))
+            LEFT JOIN patient p ON d.patient_sub = p.sub
             WHERE d.clinical_metrics_summary_id = ?
               AND d.metric_name = ?
             GROUP BY d.patient_sub
@@ -216,7 +216,7 @@ export class ClinicalService {
             if (!practiceConfig) {
                 throw new NotFoundException(`Practice with ID ${practiceId} not found`);
             }
-            const patientId = patientSub.trim();
+            let patientId = patientSub.trim();
 
             // Get connection
             const dataSource = await this.databaseService.getConnection(practiceId);
@@ -225,7 +225,7 @@ export class ClinicalService {
             try {
                 // Connect to the database
                 await queryRunner.connect();
-
+                patientId = patientId.trim();
                 // Query patient information from patient table with only relevant fields
                 const patientQuery = `
                     SELECT
