@@ -83,6 +83,7 @@ export class ClinicalService {
         }
     }
 
+
     async getPatientsByMetric(
         practiceId: string,
         metricName: string,
@@ -106,14 +107,13 @@ export class ClinicalService {
             try {
                 // Find the appropriate summary record
                 let summaryQuery = `
-            SELECT id 
-            FROM clinical_metrics_summary
-            WHERE practice_id = ?
-        `;
+                SELECT id 
+                FROM clinical_metrics_summary
+                WHERE practice_id = ?
+            `;
 
                 const summaryParams: any[] = [practiceId];
 
-                // Add filters
                 if (period) {
                     summaryQuery += ` AND enrollment_period = ?`;
                     summaryParams.push(period);
@@ -136,58 +136,86 @@ export class ClinicalService {
 
                 const summaryId = summaryResults[0].id;
 
+                // Determine which table to query based on metric name
+                let tableName: string;
+
+                if (metricName.startsWith('bp_')) {
+                    tableName = 'clinical_metrics_bp_details';
+                } else if (metricName.startsWith('spo2_')) {
+                    tableName = 'clinical_metrics_spo2_details';
+                } else if (metricName.startsWith('weight_')) {
+                    tableName = 'clinical_metrics_weight_details';
+                } else if (metricName.startsWith('glucose_')) {
+                    tableName = 'clinical_metrics_glucose_details';
+                } else if (['critical_alert', 'escalation', 'total_alerts'].includes(metricName)) {
+                    tableName = 'clinical_metrics_alert_details';
+                }
+
                 // Calculate total for pagination
                 const countQuery = `
-            SELECT COUNT(DISTINCT patient_sub) as total
-            FROM clinical_metrics_patient_details
-            WHERE clinical_metrics_summary_id = ?
-              AND metric_name = ?
-        `;
+                SELECT COUNT(DISTINCT patient_sub) as total
+                FROM ${tableName}
+                WHERE clinical_metrics_summary_id = ?
+                  AND metric_name = ?
+            `;
 
                 const countResult = await queryRunner.query(countQuery, [summaryId, metricName]);
                 const totalPatients = countResult[0]?.total || 0;
                 const totalPages = Math.ceil(totalPatients / limit);
 
+                if (totalPatients === 0) {
+                    return {
+                        total_patients: 0,
+                        page,
+                        limit,
+                        total_pages: 0,
+                        patients: []
+                    };
+                }
+
                 // Get patient details with pagination
                 const offset = (page - 1) * limit;
                 const patientsQuery = `
-            SELECT 
-                d.patient_sub,
-                d.metric_value_detailed,
-                d.reading_timestamp,
-                p.firstName,
-                p.lastName
-            FROM clinical_metrics_patient_details d
-            LEFT JOIN patient p ON d.patient_sub = p.sub
-            WHERE d.clinical_metrics_summary_id = ?
-              AND d.metric_name = ?
-            GROUP BY d.patient_sub
-            ORDER BY d.patient_sub
-            LIMIT ?, ?
-        `;
+                    SELECT
+                        d.patient_sub,
+                        d.metric_value_detailed,
+                        d.reading_timestamp,
+                        p.firstName,
+                        p.lastName
+                    FROM ${tableName} d
+                             LEFT JOIN patient p ON d.patient_sub = p.sub
+                    WHERE d.clinical_metrics_summary_id = ?
+                      AND d.metric_name = ?
+                    GROUP BY d.patient_sub
+                    ORDER BY d.patient_sub
+                    LIMIT ?, ?
+                `;
 
-                // Convert offset and limit to numbers to ensure they're treated correctly
                 const patients = await queryRunner.query(patientsQuery, [
                     summaryId,
                     metricName,
                     Number(offset),
                     Number(limit)
                 ]);
-                // prepare
-                for(let i = 0; i < patients.length; i++){
-                    const patient = patients[i];
-                    if (metricName.includes("bp") && patient.metric_value_detailed){
-                        const metaDict = JSON.parse(patient.metric_value_detailed);
-                        const sys = metaDict.sys;
-                        const dia = metaDict.dia;
-                        const hr = metaDict.hr;
-                        const arrhythmia = metaDict.arrhythmia;
-                        patient['systolic'] = sys;
-                        patient['diastolic'] = dia;
-                        patient['heart_rate'] = hr;
-                        patient['arrhythmia'] = arrhythmia;
-                    }
 
+                // Process BP-specific data if needed
+                if (metricName.includes("bp")) {
+                    for (const patient of patients) {
+                        if (patient.metric_value_detailed) {
+                            try {
+                                const metaDict = JSON.parse(patient.metric_value_detailed);
+                                patient.systolic = metaDict.sys || 0;
+                                patient.diastolic = metaDict.dia || 0;
+                                patient.heart_rate = metaDict.hr || 0;
+                                patient.arrhythmia = metaDict.arrhythmia || 0;
+
+                                // Free up memory
+                                delete patient.metric_value_detailed;
+                            } catch (e) {
+                                this.logger.warn(`Error parsing BP data for patient ${patient.patient_sub}: ${e.message}`);
+                            }
+                        }
+                    }
                 }
 
                 return {
@@ -205,7 +233,6 @@ export class ClinicalService {
             throw error;
         }
     }
-
 
     async getPatientDetails(practiceId: string, patientSub: string): Promise<any> {
         try {

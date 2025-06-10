@@ -22,7 +22,6 @@ import {practiceList} from '../patientEnrollmentModule/interface/enrollment-peri
 import {updateQuery} from "./query/store-clinical-update-query";
 import {insertQuery} from "./query/store-clinical-insert-query";
 import {createClinicalSummaryTable} from "./query/clinical-summary-table";
-import {createPatientDetailsTable} from "./query/ create-patient-details-table";
 import {
     BMI_REGEX,
     BP_ARR_REGEX,
@@ -38,6 +37,12 @@ import {
     WEIGHT_REGEX
 } from './enum/regex.constant';
 import {GLUCOSE_RANGES, NORMAL_BP_RANGES, SPO2_RANGES, WEIGHT_CHANGE_THRESHOLD} from './enum/threshold.constant';
+import {
+    createAlertDetailsTable,
+    createBpDetailsTable, createGlucoseDetailsTable,
+    createSpo2DetailsTable,
+    createWeightDetailsTable
+} from "./query/ create-patient-details-table";
 
 @Injectable()
 export class ClinicalMetricsEtlService {
@@ -49,7 +54,7 @@ export class ClinicalMetricsEtlService {
     /**
      * Main cron job that runs daily to update clinical metrics
      */
-    @Cron(CronExpression.EVERY_3_HOURS)
+    @Cron(CronExpression.EVERY_HOUR)
     async runDailyClinicalMetricsUpdate() {
         const startTime = new Date();
         this.logger.log(`===== STARTING CLINICAL METRICS ETL at ${startTime} =====`);
@@ -61,6 +66,7 @@ export class ClinicalMetricsEtlService {
 
             // Ensure the patient details table exists
             await this.createPatientDetailsTableIfNotExists(practiceId);
+
 
             // Get current date for the summary
             const summaryDate = moment().format('YYYY-MM-DD');
@@ -168,28 +174,60 @@ export class ClinicalMetricsEtlService {
         }
     }
 
+    /**
+     * Creates all metric-specific tables if they don't exist
+     * This replaces the original createPatientDetailsTableIfNotExists method
+     */
     private async createPatientDetailsTableIfNotExists(practiceId: string): Promise<void> {
         try {
             const dataSource = await this.databaseService.getConnection(practiceId);
             const queryRunner = dataSource.createQueryRunner();
 
             try {
-                // Check if the table exists
-                const tableExists = await queryRunner.hasTable('clinical_metrics_patient_details');
-
-                if (!tableExists) {
-                    // Create the table if it doesn't exist
-                    await queryRunner.query(createPatientDetailsTable);
-                    this.logger.log("Created clinical_metrics_patient_details table");
+                // Check and create BP details table
+                if (!await queryRunner.hasTable('clinical_metrics_bp_details')) {
+                    await queryRunner.query(createBpDetailsTable);
+                    this.logger.log("Created clinical_metrics_bp_details table");
                 } else {
-                    this.logger.log("clinical_metrics_patient_details table already exists");
+                    this.logger.log("clinical_metrics_bp_details table already exists");
+                }
+
+                // Check and create SpO2 details table
+                if (!await queryRunner.hasTable('clinical_metrics_spo2_details')) {
+                    await queryRunner.query(createSpo2DetailsTable);
+                    this.logger.log("Created clinical_metrics_spo2_details table");
+                } else {
+                    this.logger.log("clinical_metrics_spo2_details table already exists");
+                }
+
+                // Check and create Weight details table
+                if (!await queryRunner.hasTable('clinical_metrics_weight_details')) {
+                    await queryRunner.query(createWeightDetailsTable);
+                    this.logger.log("Created clinical_metrics_weight_details table");
+                } else {
+                    this.logger.log("clinical_metrics_weight_details table already exists");
+                }
+
+                // Check and create Glucose details table
+                if (!await queryRunner.hasTable('clinical_metrics_glucose_details')) {
+                    await queryRunner.query(createGlucoseDetailsTable);
+                    this.logger.log("Created clinical_metrics_glucose_details table");
+                } else {
+                    this.logger.log("clinical_metrics_glucose_details table already exists");
+                }
+
+                // Check and create Alert details table
+                if (!await queryRunner.hasTable('clinical_metrics_alert_details')) {
+                    await queryRunner.query(createAlertDetailsTable);
+                    this.logger.log("Created clinical_metrics_alert_details table");
+                } else {
+                    this.logger.log("clinical_metrics_alert_details table already exists");
                 }
             } finally {
-                // Release the query runner
                 await queryRunner.release();
             }
         } catch (error) {
-            this.logger.error(`Error creating patient details table: ${error.message}`);
+            this.logger.error(`Error creating patient details tables: ${error.message}`);
             throw error;
         }
     }
@@ -1638,6 +1676,53 @@ export class ClinicalMetricsEtlService {
 
 
     /**
+     * Delete existing patient details for a specific summary ID across all metric tables
+     * This replaces the original deletion logic in storeClinicalMetrics
+     */
+    private async deleteExistingPatientDetails(dataSource: any, summaryId: number): Promise<void> {
+        this.logger.log(`Deleting existing patient details for summary ID ${summaryId} from all metric tables`);
+
+        const deleteRunner = dataSource.createQueryRunner();
+        try {
+            // Delete from BP details table
+            await deleteRunner.query(`
+            DELETE FROM clinical_metrics_bp_details
+            WHERE clinical_metrics_summary_id = ?
+        `, [summaryId]);
+
+            // Delete from SpO2 details table
+            await deleteRunner.query(`
+            DELETE FROM clinical_metrics_spo2_details
+            WHERE clinical_metrics_summary_id = ?
+        `, [summaryId]);
+
+            // Delete from Weight details table
+            await deleteRunner.query(`
+            DELETE FROM clinical_metrics_weight_details
+            WHERE clinical_metrics_summary_id = ?
+        `, [summaryId]);
+
+            // Delete from Glucose details table
+            await deleteRunner.query(`
+            DELETE FROM clinical_metrics_glucose_details
+            WHERE clinical_metrics_summary_id = ?
+        `, [summaryId]);
+
+            // Delete from Alert details table
+            await deleteRunner.query(`
+            DELETE FROM clinical_metrics_alert_details
+            WHERE clinical_metrics_summary_id = ?
+        `, [summaryId]);
+
+
+            this.logger.log(`Successfully deleted existing patient details for summary ID ${summaryId}`);
+        } finally {
+            await deleteRunner.release();
+        }
+    }
+
+
+    /**
      * Store calculated clinical metrics in the database
      * Modified to avoid long-running transactions
      */
@@ -1973,111 +2058,177 @@ export class ClinicalMetricsEtlService {
 
             // Step 2: Delete existing patient details for this summary
             // This is done outside the previous transaction to avoid long locks
-            const deleteRunner = dataSource.createQueryRunner();
-            try {
-                await deleteRunner.query(`
-                DELETE FROM clinical_metrics_patient_details
-                WHERE clinical_metrics_summary_id = ?
-            `, [summaryId]);
-                this.logger.log(`Deleted existing patient details for summary ID ${summaryId}`);
-            } finally {
-                await deleteRunner.release();
-            }
+            await this.deleteExistingPatientDetails(dataSource, summaryId)
+            // Initialize arrays for each metric type
+            const bpDetailsValues: any[] = [];
+            const spo2DetailsValues: any[] = [];
+            const weightDetailsValues: any[] = [];
+            const glucoseDetailsValues: any[] = [];
+            const alertDetailsValues: any[] = [];
 
             // Step 3: Prepare all patient details for batch insertion
             const patientDetailsValues = [];
+            this.addPatientDetailsToTableValues(bpDetailsValues, summaryId, bpMetricsData.patientDetails.bp_readings, 'bp_reading');
+            this.addPatientDetailsToTableValues(bpDetailsValues, summaryId, bpMetricsData.patientDetails.bp_abnormal, 'bp_abnormal');
+            this.addPatientDetailsToTableValues(bpDetailsValues, summaryId, bpMetricsData.patientDetails.bp_arrhythmia, 'bp_arrhythmia');
+            this.addPatientDetailsToTableValues(bpDetailsValues, summaryId, bpMetricsData.patientDetails.bp_normal, 'bp_normal');
+            this.addPatientDetailsToTableValues(bpDetailsValues, summaryId, bpMetricsData.patientDetails.bp_sys_gt_130_dia_gt_80, 'bp_sys_gt_130_dia_gt_80');
+            this.addPatientDetailsToTableValues(bpDetailsValues, summaryId, bpMetricsData.patientDetails.bp_sys_gt_140_dia_gt_80, 'bp_sys_gt_140_dia_gt_80');
+            this.addPatientDetailsToTableValues(bpDetailsValues, summaryId, bpMetricsData.patientDetails.bp_sys_gt_150_dia_gt_80, 'bp_sys_gt_150_dia_gt_80');
+            this.addPatientDetailsToTableValues(bpDetailsValues, summaryId, bpMetricsData.patientDetails.bp_sys_gt_160_dia_gt_80, 'bp_sys_gt_160_dia_gt_80');
+            this.addPatientDetailsToTableValues(bpDetailsValues, summaryId, bpMetricsData.patientDetails.bp_sys_lt_90_dia_lt_60, 'bp_sys_lt_90_dia_lt_60');
+            this.addPatientDetailsToTableValues(bpDetailsValues, summaryId, bpMetricsData.patientDetails.bp_hr_abnormal, 'bp_hr_abnormal');
 
-            // Add all patient details to the values array
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, bpMetricsData.patientDetails.bp_readings, 'bp_reading');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, bpMetricsData.patientDetails.bp_abnormal, 'bp_abnormal');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, bpMetricsData.patientDetails.bp_arrhythmia, 'bp_arrhythmia');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, bpMetricsData.patientDetails.bp_normal, 'bp_normal');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, bpMetricsData.patientDetails.bp_sys_gt_130_dia_gt_80, 'bp_sys_gt_130_dia_gt_80');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, bpMetricsData.patientDetails.bp_sys_gt_140_dia_gt_80, 'bp_sys_gt_140_dia_gt_80');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, bpMetricsData.patientDetails.bp_sys_gt_150_dia_gt_80, 'bp_sys_gt_150_dia_gt_80');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, bpMetricsData.patientDetails.bp_sys_gt_160_dia_gt_80, 'bp_sys_gt_160_dia_gt_80');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, bpMetricsData.patientDetails.bp_sys_lt_90_dia_lt_60, 'bp_sys_lt_90_dia_lt_60');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, bpMetricsData.patientDetails.bp_hr_abnormal, 'bp_hr_abnormal');
+            // SpO2 metrics
+            this.addPatientDetailsToTableValues(spo2DetailsValues, summaryId, oximeterMetricsData.patientDetails.spo2_readings, 'spo2_reading');
+            this.addPatientDetailsToTableValues(spo2DetailsValues, summaryId, oximeterMetricsData.patientDetails.spo2_90_92, 'spo2_90_92');
+            this.addPatientDetailsToTableValues(spo2DetailsValues, summaryId, oximeterMetricsData.patientDetails.spo2_88_89, 'spo2_88_89');
+            this.addPatientDetailsToTableValues(spo2DetailsValues, summaryId, oximeterMetricsData.patientDetails.spo2_below_88, 'spo2_below_88');
 
-            // Oximeter patients
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, oximeterMetricsData.patientDetails.spo2_readings, 'spo2_reading');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, oximeterMetricsData.patientDetails.spo2_90_92, 'spo2_90_92');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, oximeterMetricsData.patientDetails.spo2_88_89, 'spo2_88_89');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, oximeterMetricsData.patientDetails.spo2_below_88, 'spo2_below_88');
+            // Weight metrics
+            this.addPatientDetailsToTableValues(weightDetailsValues, summaryId, weightMetricsData.patientDetails.weight_readings, 'weight_reading');
+            this.addPatientDetailsToTableValues(weightDetailsValues, summaryId, weightMetricsData.patientDetails.weight_gain_4pct, 'weight_gain_4pct');
 
-            // Weight patients
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, weightMetricsData.patientDetails.weight_readings, 'weight_reading');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, weightMetricsData.patientDetails.weight_gain_4pct, 'weight_gain_4pct');
+            // Glucose metrics - fasting
+            this.addPatientDetailsToTableValues(glucoseDetailsValues, summaryId, glucoseMetricsData.patientDetails.fasting.readings, 'glucose_fasting');
+            this.addPatientDetailsToTableValues(glucoseDetailsValues, summaryId, glucoseMetricsData.patientDetails.fasting.above_130, 'glucose_fasting_above_130');
+            this.addPatientDetailsToTableValues(glucoseDetailsValues, summaryId, glucoseMetricsData.patientDetails.fasting.above_160, 'glucose_fasting_above_160');
+            this.addPatientDetailsToTableValues(glucoseDetailsValues, summaryId, glucoseMetricsData.patientDetails.fasting.above_180, 'glucose_fasting_above_180');
+            this.addPatientDetailsToTableValues(glucoseDetailsValues, summaryId, glucoseMetricsData.patientDetails.fasting.below_70, 'glucose_fasting_below_70');
+            this.addPatientDetailsToTableValues(glucoseDetailsValues, summaryId, glucoseMetricsData.patientDetails.fasting.below_54, 'glucose_fasting_below_54');
 
-            // Glucose patients - fasting
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.fasting.readings, 'glucose_fasting');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.fasting.above_130, 'glucose_fasting_above_130');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.fasting.above_160, 'glucose_fasting_above_160');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.fasting.above_180, 'glucose_fasting_above_180');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.fasting.below_70, 'glucose_fasting_below_70');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.fasting.below_54, 'glucose_fasting_below_54');
+            // Glucose metrics - post meal
+            this.addPatientDetailsToTableValues(glucoseDetailsValues, summaryId, glucoseMetricsData.patientDetails.post_meal.readings, 'glucose_postmeal');
+            this.addPatientDetailsToTableValues(glucoseDetailsValues, summaryId, glucoseMetricsData.patientDetails.post_meal.above_180, 'glucose_postmeal_above_180');
+            this.addPatientDetailsToTableValues(glucoseDetailsValues, summaryId, glucoseMetricsData.patientDetails.post_meal.above_200, 'glucose_postmeal_above_200');
 
-            // Glucose patients - post meal
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.post_meal.readings, 'glucose_postmeal');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.post_meal.above_180, 'glucose_postmeal_above_180');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.post_meal.above_200, 'glucose_postmeal_above_200');
+            // Glucose metrics - random
+            this.addPatientDetailsToTableValues(glucoseDetailsValues, summaryId, glucoseMetricsData.patientDetails.random.readings, 'glucose_random');
+            this.addPatientDetailsToTableValues(glucoseDetailsValues, summaryId, glucoseMetricsData.patientDetails.random.above_200, 'glucose_random_above_200');
+            this.addPatientDetailsToTableValues(glucoseDetailsValues, summaryId, glucoseMetricsData.patientDetails.random.below_70, 'glucose_random_below_70');
 
-            // Glucose patients - random
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.random.readings, 'glucose_random');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.random.above_200, 'glucose_random_above_200');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, glucoseMetricsData.patientDetails.random.below_70, 'glucose_random_below_70');
+            // Alert metrics
+            this.addPatientDetailsToTableValues(alertDetailsValues, summaryId, alertMetricsData.patientDetails.critical_alerts, 'critical_alert');
+            this.addPatientDetailsToTableValues(alertDetailsValues, summaryId, alertMetricsData.patientDetails.escalations, 'escalation');
+            this.addPatientDetailsToTableValues(alertDetailsValues, summaryId, alertMetricsData.patientDetails.total_alerts, 'total_alerts');
 
-            // Alert patients
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, alertMetricsData.patientDetails.critical_alerts, 'critical_alert');
-            this.addPatientDetailsToValues(patientDetailsValues, summaryId, alertMetricsData.patientDetails.escalations, 'escalation');
 
-            // Step 4: Insert patient details in small batches (no transaction)
-            // Using much smaller batch size to prevent lock timeouts
-            const batchSize = 300; // Reduced from 1000 for faster individual operations
+            // Insert data into separate tables in batches
+            const batchSize = 300; // Same batch size as before
 
-            this.logger.log(`Processing ${patientDetailsValues.length} patient detail records in batches of ${batchSize}`);
-
-            for (let i = 0; i < patientDetailsValues.length; i += batchSize) {
-                const batch = patientDetailsValues.slice(i, i + batchSize);
-                const placeholders = batch.map(() => '(?, ?, ?, ?, ?)').join(', ');
-                const flatValues = [];
-                for (const item of batch) {
-                    flatValues.push(
-                        item[0], // summaryId
-                        item[1], // patient_sub
-                        item[2], // metricName
-                        typeof item[3] === 'object' ? JSON.stringify(item[3]) : item[3], // Ensure JSON is stringified
-                        item[4] // reading_timestamp
-                    );
-                }
-                const batchRunner = dataSource.createQueryRunner();
-
-                try {
-                    await batchRunner.query(`
-                        INSERT INTO clinical_metrics_patient_details (clinical_metrics_summary_id,
-                                                                      patient_sub,
-                                                                      metric_name,
-                                                                      metric_value_detailed,
-                                                                      reading_timestamp)
-                        VALUES ${placeholders}
-                    `, flatValues);
-
-                    // Log progress every 20 batches (2000 records)
-                    if (i % (batchSize * 20) === 0) {
-                        this.logger.log(`Processed ${i} of ${patientDetailsValues.length} patient detail records`);
-                    }
-                } catch (error) {
-                    this.logger.error(`Error inserting batch ${Math.floor(i/batchSize)} of patient details: ${error.message}`);
-                    // Continue with next batch instead of failing entire operation
-                } finally {
-                    await batchRunner.release();
-                }
+            // Insert into BP details table
+            if (bpDetailsValues.length > 0) {
+                await this.batchInsertMetrics(dataSource, bpDetailsValues, 'clinical_metrics_bp_details', batchSize);
             }
 
-            this.logger.log(`Stored ${patientDetailsValues.length} patient detail records for summary ID ${summaryId}`);
+            // Insert into SpO2 details table
+            if (spo2DetailsValues.length > 0) {
+                await this.batchInsertMetrics(dataSource, spo2DetailsValues, 'clinical_metrics_spo2_details', batchSize);
+            }
+
+            // Insert into Weight details table
+            if (weightDetailsValues.length > 0) {
+                await this.batchInsertMetrics(dataSource, weightDetailsValues, 'clinical_metrics_weight_details', batchSize);
+            }
+
+            // Insert into Glucose details table
+            if (glucoseDetailsValues.length > 0) {
+                await this.batchInsertMetrics(dataSource, glucoseDetailsValues, 'clinical_metrics_glucose_details', batchSize);
+            }
+
+            // Insert into Alert details table
+            if (alertDetailsValues.length > 0) {
+                await this.batchInsertMetrics(dataSource, alertDetailsValues, 'clinical_metrics_alert_details', batchSize);
+            }
+
+            const totalRecords = bpDetailsValues.length + spo2DetailsValues.length +
+                weightDetailsValues.length + glucoseDetailsValues.length +
+                alertDetailsValues.length;
+
+            this.logger.log(`Stored ${totalRecords} patient detail records across all tables for summary ID ${summaryId}`);
         } catch (error) {
             this.logger.error(`Error storing clinical metrics: ${error.message}`);
             throw error;
+        }
+    }
+
+
+    /**
+     * Helper method to add patient details to the values array for a specific table
+     */
+    private addPatientDetailsToTableValues(
+        valuesArray: any[],
+        summaryId: number,
+        patientDetails: PatientMetricDetail[],
+        metricName: string
+    ): void {
+        for (const detail of patientDetails) {
+            if (!detail?.metric_value_detailed || !detail.reading_timestamp) continue;
+            let patientSub = detail.patient_sub.toString().trim();
+            // '-', '_'
+            const replacedPatientId = patientSub.replace(/_/g, "-");
+            valuesArray.push([
+                summaryId,
+                replacedPatientId,
+                metricName,
+                detail.metric_value_detailed,
+                detail.reading_timestamp
+            ]);
+        }
+    }
+
+
+    /**
+     * Helper method to batch insert records into a specific table
+     */
+    private async batchInsertMetrics(
+        dataSource: any,
+        values: any[],
+        tableName: string,
+        batchSize: number
+    ): Promise<void> {
+        this.logger.log(`Inserting ${values.length} records into ${tableName}`);
+
+        for (let i = 0; i < values.length; i += batchSize) {
+            const batch = values.slice(i, i + batchSize);
+            if (batch.length === 0) continue;
+
+            const placeholders = batch.map(() => '(?, ?, ?, ?, ?)').join(', ');
+            const flatValues = [];
+
+            for (const item of batch) {
+                flatValues.push(
+                    item[0], // summaryId
+                    item[1], // patient_sub
+                    item[2], // metricName
+                    typeof item[3] === 'object' ? JSON.stringify(item[3]) : item[3], // metric_value_detailed
+                    item[4]  // reading_timestamp
+                );
+            }
+
+            const batchRunner = dataSource.createQueryRunner();
+            try {
+                await batchRunner.query(`
+                INSERT INTO ${tableName} (
+                    clinical_metrics_summary_id,
+                    patient_sub,
+                    metric_name,
+                    metric_value_detailed,
+                    reading_timestamp
+                )
+                VALUES ${placeholders}
+            `, flatValues);
+
+                // Log progress every 20 batches
+                if (i % (batchSize * 20) === 0 && i > 0) {
+                    this.logger.log(`Processed ${i} of ${values.length} records for ${tableName}`);
+                }
+            } catch (error) {
+                this.logger.error(`Error inserting batch into ${tableName}: ${error.message}`);
+                // Continue with next batch instead of failing entire operation
+            } finally {
+                await batchRunner.release();
+            }
         }
     }
 
