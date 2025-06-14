@@ -140,7 +140,7 @@ export class ClinicalService {
                 let tableName: string;
 
                 if (metricName.startsWith('bp_')) {
-                    tableName = 'clinical_metrics_bp_details';
+                    tableName = 'clinical_metrics_bp_details_v1';
                 } else if (metricName.startsWith('spo2_')) {
                     tableName = 'clinical_metrics_spo2_details';
                 } else if (metricName.startsWith('weight_')) {
