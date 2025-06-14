@@ -42,7 +42,7 @@ import {
     createBpDetailsTable, createGlucoseDetailsTable,
     createSpo2DetailsTable,
     createWeightDetailsTable
-} from "./query/ create-patient-details-table";
+} from "./query/create-patient-details-table";
 
 @Injectable()
 export class ClinicalMetricsEtlService {
@@ -54,7 +54,7 @@ export class ClinicalMetricsEtlService {
     /**
      * Main cron job that runs daily to update clinical metrics
      */
-    @Cron(CronExpression.EVERY_HOUR)
+    @Cron(CronExpression.EVERY_2_HOURS)
     async runDailyClinicalMetricsUpdate() {
         const startTime = new Date();
         this.logger.log(`===== STARTING CLINICAL METRICS ETL at ${startTime} =====`);
@@ -68,7 +68,7 @@ export class ClinicalMetricsEtlService {
             await this.createPatientDetailsTableIfNotExists(practiceId);
 
 
-            // Get current date for the summary
+            // Get the current date for the summary
             const summaryDate = moment().format('YYYY-MM-DD');
 
             // Get all practices
@@ -76,7 +76,7 @@ export class ClinicalMetricsEtlService {
             this.logger.log(`Found ${practices.length} practices to process`);
 
             // Enrollment periods to process
-            const enrollmentPeriods = ['first_month', '1_3_months', '4_6_months', '6_12_months', 'overall'];
+            const enrollmentPeriods = ['current_month','1_2_months','2_3_months','3_4_months','4_5_months','5_6_months','6_7_months','7_8_months','8_9_months','9_10_months','10_11_months','11_12_months', '1_3_months', '4_6_months', '6_12_months', 'overall']
 
             // Process each practice and enrollment period
             for (const practice of practices) {
@@ -86,9 +86,10 @@ export class ClinicalMetricsEtlService {
                 // Process each enrollment period
                 for (const periodName of enrollmentPeriods) {
                     this.logger.log(`Processing enrollment period: ${periodName}`);
-
-                    // Get patients in this practice and enrollment period
-                    const patients = await this.getPatientsByPracticeAndEnrollmentPeriod(practiceId, periodName);
+                    // Get the appropriate date range for this enrollment period
+                    const {startDate, endDate} = this.getAppropriateDateRange(periodName);
+                    this.logger.debug(`Using date range: ${startDate} to ${endDate} for period ${periodName}`);
+                    const patients = await this.getPatientsByPracticeAndEnrollmentPeriod(practiceId,startDate  , endDate );
 
                     if (!patients || patients.length === 0) {
                         this.logger.log(`No patients found for practice ${practiceId} in period ${periodName}`);
@@ -96,10 +97,6 @@ export class ClinicalMetricsEtlService {
                     }
 
                     this.logger.log(`Found ${patients.length} patients for practice ${practiceId} in period ${periodName}`);
-
-                    // Get the appropriate date range for this enrollment period
-                    const {startDate, endDate} = this.getAppropriateDateRange(periodName);
-                    this.logger.log(`Using date range: ${startDate} to ${endDate} for period ${periodName}`);
 
                     // Get data for each device type
                     const bpReadings = await this.getDeviceDataForPatients(patients, ' BPM', startDate, endDate , practiceId);
@@ -114,7 +111,7 @@ export class ClinicalMetricsEtlService {
                     const glucoseMetrics = this.processGlucoseData(glucoseReadings , practiceId);
                     const alertMetrics = await this.getAlertMetrics(patients, startDate, endDate , practiceId);
 
-                    // Store metrics in database
+                    // Store metrics in a database
                     await this.storeClinicalMetrics(
                         summaryDate,
                         practiceId,
@@ -185,11 +182,11 @@ export class ClinicalMetricsEtlService {
 
             try {
                 // Check and create BP details table
-                if (!await queryRunner.hasTable('clinical_metrics_bp_details')) {
+                if (!await queryRunner.hasTable('clinical_metrics_bp_details_v1')) {
                     await queryRunner.query(createBpDetailsTable);
-                    this.logger.log("Created clinical_metrics_bp_details table");
+                    this.logger.log("Created clinical_metrics_bp_details_v1 table");
                 } else {
-                    this.logger.log("clinical_metrics_bp_details table already exists");
+                    this.logger.log("clinical_metrics_bp_details_v1 table already exists");
                 }
 
                 // Check and create SpO2 details table
@@ -242,76 +239,239 @@ export class ClinicalMetricsEtlService {
         }));
     }
 
-    /**
-     * Get patients by practice and enrollment period
-     */
+
     private async getPatientsByPracticeAndEnrollmentPeriod(
         practiceId: string,
-        enrollmentPeriodName: string
+        startDate: Date,
+        endDate: Date
     ): Promise<string[]> {
+        const methodName = 'getPatientsByPracticeAndEnrollmentPeriod';
+        const startTime = Date.now();
+
+        this.logger.log(`[${methodName}] Starting patient retrieval for practice: ${practiceId}, dateRange: ${startDate.toISOString()} to ${endDate.toISOString()}`);
+
         try {
+            // Get database connection
+            this.logger.debug(`[${methodName}] Establishing database connection for practice: ${practiceId}`);
             const dataSource = await this.databaseService.getConnection(practiceId);
             const queryRunner = dataSource.createQueryRunner();
 
             try {
-                const result = await queryRunner.query(`
-                    SELECT replace(patient_sub, '-', '_') as patient_sub
-                    FROM patient_enrollment_periods
-                    WHERE practice_id = ?
-                      AND enrollment_period = ?
-                `, [practiceId, enrollmentPeriodName]);
+                // Execute query
+                this.logger.debug(`[${methodName}] Executing query to fetch distinct patients`);
+                const queryStartTime = Date.now();
 
-                return result.map(row => row?.patient_sub);
+                const result = await queryRunner.query(`
+                SELECT DISTINCT patient_sub
+                FROM device_data_transmission
+                WHERE timestamp >= ?
+                  AND timestamp <= ?
+                  AND patient_sub IS NOT NULL
+                ORDER BY patient_sub
+            `, [startDate, endDate]);
+
+                // Process results
+                const patientIds = result.map(row => row?.patient_sub).filter(patientSub => patientSub);
+                const uniquePatientCount = patientIds.length;
+                const totalDuration = Date.now() - startTime;
+                this.logger.log(`[${methodName}] Successfully retrieved ${uniquePatientCount} unique patients for practice: ${practiceId} in ${totalDuration}ms`);
+
+                // Log sample of patient IDs for debugging (first 5)
+                if (patientIds.length > 0) {
+                    const sampleIds = patientIds.slice(0, 5);
+                    this.logger.debug(`[${methodName}] Sample patient IDs: [${sampleIds.join(', ')}]${patientIds.length > 5 ? '...' : ''}`);
+                } else {
+                    this.logger.warn(`[${methodName}] No patients found for practice: ${practiceId} in date range: ${startDate.toISOString()} to ${endDate.toISOString()}`);
+                }
+
+                return patientIds;
+
+            } catch (queryError) {
+                this.logger.error(`[${methodName}] Database query failed for practice: ${practiceId}`, {
+                    error: queryError.message,
+                    stack: queryError.stack,
+                    startDate: startDate.toISOString(),
+                    endDate: endDate.toISOString(),
+                    duration: Date.now() - startTime
+                });
+                throw queryError;
             } finally {
+                // Release query runner
+                this.logger.debug(`[${methodName}] Releasing database query runner`);
                 await queryRunner.release();
             }
+
         } catch (error) {
-            this.logger.error(
-                `Error retrieving patients for practice ${practiceId} in period ${enrollmentPeriodName}: ${error.message}`
-            );
+            const totalDuration = Date.now() - startTime;
+            this.logger.error(`[${methodName}] Failed to retrieve patients for practice: ${practiceId}`, {
+                error: error.message,
+                stack: error.stack,
+                practiceId,
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString(),
+                duration: totalDuration
+            });
             throw error;
         }
     }
 
+
     /**
      * Determines the appropriate date range for device data based on the enrollment period
      */
-    private getAppropriateDateRange(enrollmentPeriod: string): { startDate: Date, endDate: Date } {
+    private getAppropriateDateRange(enrollmentPeriod: string): {
+        startDate: Date,
+        endDate: Date,
+        startMonth: number,
+        startYear: number,
+        endMonth: number,
+        endYear: number
+    } {
         const currentDate = new Date();
         let startDate: Date;
         let endDate: Date;
 
-        if (enrollmentPeriod === 'first_month') {
-            // 0-30 days
-            endDate = currentDate;
-            startDate = new Date(currentDate);
-            startDate.setDate(currentDate.getDate() - 30);
-        } else if (enrollmentPeriod === '1_3_months') {
-            // 31-90 days
-            endDate = new Date(currentDate);
-            endDate.setDate(currentDate.getDate() - 30);
-            startDate = new Date(currentDate);
-            startDate.setDate(currentDate.getDate() - 90);
-        } else if (enrollmentPeriod === '4_6_months') {
-            // 91-180 days
-            endDate = new Date(currentDate);
-            endDate.setDate(currentDate.getDate() - 90);
-            startDate = new Date(currentDate);
-            startDate.setDate(currentDate.getDate() - 180);
-        } else if (enrollmentPeriod === '6_12_months') {
-            // 181-365 days
-            endDate = new Date(currentDate);
-            endDate.setDate(currentDate.getDate() - 180);
-            startDate = new Date(currentDate);
-            startDate.setDate(currentDate.getDate() - 365);
-        } else {
-            // 'overall' - All data up to 5 years
-            endDate = currentDate;
-            startDate = new Date(currentDate);
-            startDate.setDate(currentDate.getDate() - 730 * 5); // 10 years
+        switch (enrollmentPeriod) {
+            case 'current_month':
+                // Current month (1st of current month to now)
+                endDate = currentDate;
+                startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+                break;
+
+            case '1_2_months':
+                // 1-2 months ago
+                endDate = new Date(currentDate);
+                endDate.setMonth(currentDate.getMonth() - 1);
+                startDate = new Date(currentDate);
+                startDate.setMonth(currentDate.getMonth() - 2);
+                break;
+
+            case '2_3_months':
+                // 2-3 months ago
+                endDate = new Date(currentDate);
+                endDate.setMonth(currentDate.getMonth() - 2);
+                startDate = new Date(currentDate);
+                startDate.setMonth(currentDate.getMonth() - 3);
+                break;
+
+            case '3_4_months':
+                // 3-4 months ago
+                endDate = new Date(currentDate);
+                endDate.setMonth(currentDate.getMonth() - 3);
+                startDate = new Date(currentDate);
+                startDate.setMonth(currentDate.getMonth() - 4);
+                break;
+
+            case '4_5_months':
+                // 4-5 months ago
+                endDate = new Date(currentDate);
+                endDate.setMonth(currentDate.getMonth() - 4);
+                startDate = new Date(currentDate);
+                startDate.setMonth(currentDate.getMonth() - 5);
+                break;
+
+            case '5_6_months':
+                // 5-6 months ago
+                endDate = new Date(currentDate);
+                endDate.setMonth(currentDate.getMonth() - 5);
+                startDate = new Date(currentDate);
+                startDate.setMonth(currentDate.getMonth() - 6);
+                break;
+
+            case '6_7_months':
+                // 6-7 months ago
+                endDate = new Date(currentDate);
+                endDate.setMonth(currentDate.getMonth() - 6);
+                startDate = new Date(currentDate);
+                startDate.setMonth(currentDate.getMonth() - 7);
+                break;
+
+            case '7_8_months':
+                // 7-8 months ago
+                endDate = new Date(currentDate);
+                endDate.setMonth(currentDate.getMonth() - 7);
+                startDate = new Date(currentDate);
+                startDate.setMonth(currentDate.getMonth() - 8);
+                break;
+
+            case '8_9_months':
+                // 8-9 months ago
+                endDate = new Date(currentDate);
+                endDate.setMonth(currentDate.getMonth() - 8);
+                startDate = new Date(currentDate);
+                startDate.setMonth(currentDate.getMonth() - 9);
+                break;
+
+            case '9_10_months':
+                // 9-10 months ago
+                endDate = new Date(currentDate);
+                endDate.setMonth(currentDate.getMonth() - 9);
+                startDate = new Date(currentDate);
+                startDate.setMonth(currentDate.getMonth() - 10);
+                break;
+
+            case '10_11_months':
+                // 10-11 months ago
+                endDate = new Date(currentDate);
+                endDate.setMonth(currentDate.getMonth() - 10);
+                startDate = new Date(currentDate);
+                startDate.setMonth(currentDate.getMonth() - 11);
+                break;
+
+            case '11_12_months':
+                // 11-12 months ago
+                endDate = new Date(currentDate);
+                endDate.setMonth(currentDate.getMonth() - 11);
+                startDate = new Date(currentDate);
+                startDate.setMonth(currentDate.getMonth() - 12);
+                break;
+
+            case '1_3_months':
+                // 1-3 months ago
+                endDate = new Date(currentDate);
+                endDate.setMonth(currentDate.getMonth() - 1);
+                startDate = new Date(currentDate);
+                startDate.setMonth(currentDate.getMonth() - 3);
+                break;
+
+            case '4_6_months':
+                // 4-6 months ago
+                endDate = new Date(currentDate);
+                endDate.setMonth(currentDate.getMonth() - 4);
+                startDate = new Date(currentDate);
+                startDate.setMonth(currentDate.getMonth() - 6);
+                break;
+
+            case '6_12_months':
+                // 6-12 months ago
+                endDate = new Date(currentDate);
+                endDate.setMonth(currentDate.getMonth() - 6);
+                startDate = new Date(currentDate);
+                startDate.setMonth(currentDate.getMonth() - 12);
+                break;
+
+            case 'overall':
+                // All data - from 5 years ago to now
+                endDate = currentDate;
+                startDate = new Date(currentDate);
+                startDate.setFullYear(currentDate.getFullYear() - 5);
+                break;
+
+            default:
+                // Default to current month if invalid period provided
+                endDate = currentDate;
+                startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+                break;
         }
 
-        return {startDate, endDate};
+        return {
+            startDate,
+            endDate,
+            startMonth: startDate.getMonth() + 1, // Adding 1 because getMonth() returns 0-11
+            startYear: startDate.getFullYear(),
+            endMonth: endDate.getMonth() + 1,     // Adding 1 because getMonth() returns 0-11
+            endYear: endDate.getFullYear()
+        };
     }
 
     /**
@@ -325,9 +485,6 @@ export class ClinicalMetricsEtlService {
         return result;
     }
 
-    /**
-     * Get device data for a list of patients within a date range
-     */
     /**
      * Get device data for a list of patients within a date range
      */
@@ -370,7 +527,7 @@ export class ClinicalMetricsEtlService {
                            entry_type,
                            critical_alert
                     FROM device_data_transmission
-                    WHERE trim(patient_sub) IN (${placeholders})
+                    WHERE patient_sub IN (${placeholders})
                       AND device_name = ?
                 `;
 
@@ -569,6 +726,7 @@ export class ClinicalMetricsEtlService {
                         metric_value_detailed: metaDict,
                         reading_timestamp: reading.timestamp
                     });
+                    // todo
                     uniquePatients.readings.add(patientSub);
                     totalPatients++;
                 }
@@ -583,7 +741,7 @@ export class ClinicalMetricsEtlService {
                     });
                 }
 
-                // Add to all readings collections
+                // Add to all reading collections
                 if (sys > 0) {
                     allSysValues.push(sys);
                 }
@@ -941,10 +1099,10 @@ export class ClinicalMetricsEtlService {
                         FROM device_data_transmission t1
                                  INNER JOIN (SELECT patient_sub, MIN(timestamp) as earliest_timestamp
                                              FROM device_data_transmission
-                                             WHERE trim(patient_sub) IN (${placeholders})
+                                             WHERE patient_sub IN (${placeholders})
                                                AND device_name = ' Weight'
                                                AND detailed_value IS NOT NULL
-                                             GROUP BY patient_sub) t2 ON trim(t1.patient_sub) = trim(t2.patient_sub) AND
+                                             GROUP BY patient_sub) t2 ON t1.patient_sub = t2.patient_sub AND
                                                                          t1.timestamp = t2.earliest_timestamp
                         WHERE t1.device_name = ' Weight'
                     `;
@@ -1248,7 +1406,7 @@ export class ClinicalMetricsEtlService {
                 const patientSub = reading.patient_sub;
 
                 const glucoseValue = metaGlucose.glucose;
-                const glucoseType = metaGlucose.type.toLowerCase();
+                const glucoseType = metaGlucose?.type?.toLowerCase();
 
                 if (glucoseValue > 0) {
                     // Categorize by reading type
@@ -1526,7 +1684,7 @@ export class ClinicalMetricsEtlService {
                     const totalQuery = `
                         SELECT COUNT(*) as total_count
                         FROM device_data_transmission
-                        WHERE trim(patient_sub) IN (${placeholders})
+                        WHERE patient_sub IN (${placeholders})
                             ${dateConditions}
                     `;
 
@@ -1542,7 +1700,7 @@ export class ClinicalMetricsEtlService {
                                device_name,
                                detailed_value
                         FROM device_data_transmission
-                        WHERE trim(patient_sub) IN (${placeholders})
+                        WHERE patient_sub IN (${placeholders})
                           AND critical_alert = 1
                             ${dateConditions}
                     `;
@@ -1568,7 +1726,7 @@ export class ClinicalMetricsEtlService {
                                device_name,
                                detailed_value
                         FROM device_data_transmission
-                        WHERE trim(patient_sub) IN (${placeholders})
+                        WHERE patient_sub IN (${placeholders})
                           AND out_of_range_alert = 1
                             ${dateConditions}
                     `;
@@ -1595,7 +1753,7 @@ export class ClinicalMetricsEtlService {
                                detailed_value,
                                ext_alert_comments
                         FROM device_data_transmission
-                        WHERE trim(patient_sub) IN (${placeholders})
+                        WHERE patient_sub IN (${placeholders})
                           AND ext_alert = 1
                             ${dateConditions}
                     `;
@@ -1686,7 +1844,7 @@ export class ClinicalMetricsEtlService {
         try {
             // Delete from BP details table
             await deleteRunner.query(`
-            DELETE FROM clinical_metrics_bp_details
+            DELETE FROM clinical_metrics_bp_details_v1
             WHERE clinical_metrics_summary_id = ?
         `, [summaryId]);
 
@@ -2068,6 +2226,7 @@ export class ClinicalMetricsEtlService {
 
             // Step 3: Prepare all patient details for batch insertion
             const patientDetailsValues = [];
+            // bp_reading , bp_abnormal , bp_arrhythmia , bp_normal , bp_sys_gt_130_dia_gt_80 , bp_sys_gt_140_dia_gt_80 , bp_sys_gt_150_dia_gt_80 , bp_sys_gt_160_dia_gt_80 , bp_sys_lt_90_dia_lt_60 , bp_hr_abnormal
             this.addPatientDetailsToTableValues(bpDetailsValues, summaryId, bpMetricsData.patientDetails.bp_readings, 'bp_reading');
             this.addPatientDetailsToTableValues(bpDetailsValues, summaryId, bpMetricsData.patientDetails.bp_abnormal, 'bp_abnormal');
             this.addPatientDetailsToTableValues(bpDetailsValues, summaryId, bpMetricsData.patientDetails.bp_arrhythmia, 'bp_arrhythmia');
@@ -2118,7 +2277,8 @@ export class ClinicalMetricsEtlService {
 
             // Insert into BP details table
             if (bpDetailsValues.length > 0) {
-                await this.batchInsertMetrics(dataSource, bpDetailsValues, 'clinical_metrics_bp_details', batchSize);
+                this.logger.debug(`Inserting ${bpDetailsValues.length} BP details records`);
+                await this.batchInsertMetrics(dataSource, bpDetailsValues, 'clinical_metrics_bp_details_v1', batchSize);
             }
 
             // Insert into SpO2 details table
@@ -2225,7 +2385,7 @@ export class ClinicalMetricsEtlService {
                 }
             } catch (error) {
                 this.logger.error(`Error inserting batch into ${tableName}: ${error.message}`);
-                // Continue with next batch instead of failing entire operation
+                // Continue with the next batch instead of failing entire operation
             } finally {
                 await batchRunner.release();
             }
