@@ -27,6 +27,7 @@ export const createBpDetailsTable = `
         PARTITION p_bp_hr_abnormal VALUES IN ('bp_hr_abnormal')
         );`;
 
+
 export const createSpo2DetailsTable = `CREATE TABLE if not exists clinical_metrics_spo2_details (
     id INT AUTO_INCREMENT PRIMARY KEY,
     clinical_metrics_summary_id INT NOT NULL,

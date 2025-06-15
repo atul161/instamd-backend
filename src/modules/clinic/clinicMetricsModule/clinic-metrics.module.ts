@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
-import {ClinicalMetricsEtlService} from "./clinical-metrics.etl";
 import {DatabaseModule} from "../../database/database.module";
 import {ClinicalService} from "./clinical.service";
 import {ClinicalMetricsController} from "./clinical-metrics.controller";
@@ -22,9 +21,8 @@ import {CacheModule} from "@nestjs/cache-manager";
     ],
     controllers: [ClinicalMetricsController],
     providers: [
-        ClinicalMetricsEtlService,
         ClinicalService
     ],
-    exports: [ClinicalMetricsEtlService , ClinicalService],
+    exports: [ ClinicalService],
 })
 export class ClinicMetricsModule {}
