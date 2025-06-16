@@ -183,7 +183,7 @@ export class ClinicalService {
                         p.firstName,
                         p.lastName
                     FROM ${tableName} d
-                             LEFT JOIN patient p ON d.patient_sub = p.sub
+                             LEFT JOIN patient p ON trim(d.patient_sub) = p.sub
                     WHERE d.clinical_metrics_summary_id = ?
                       AND d.metric_name = ?
                     GROUP BY d.patient_sub
