@@ -1,6 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import {PracticeDbConfig, practiceList} from "../clinic/patientEnrollmentModule/interface/enrollment-period.interface";
+import {
+    InstaMDDbConfig,
+    PracticeDbConfig,
+    practiceList
+} from "../clinic/patientEnrollmentModule/interface/enrollment-period.interface";
 import {PatientEnrollmentPeriod} from "../clinic/patientEnrollmentModule/entity/patient-enrollment.entity";
 import * as process from "node:process";
 import {ClinicalMetricsSummary} from "../clinic/clinicMetricsModule/entity/entity";
@@ -9,6 +13,7 @@ import {ClinicalMetricsSummary} from "../clinic/clinicMetricsModule/entity/entit
 export class DatabaseService {
     private readonly logger = new Logger(DatabaseService.name);
     private dataSources: Map<string, DataSource> = new Map();
+    private instaMDDataSource: DataSource;
 
     constructor() {}
 
@@ -55,6 +60,16 @@ export class DatabaseService {
         return allConfigs.find(config => config.practiceId === practiceId) || null;
     }
 
+    getInstaMDConfig(): InstaMDDbConfig {
+        return {
+            host: 'instamd.cs72scwkkjcb.us-east-1.rds.amazonaws.com',
+            port: 3306,
+            username: process.env.INSTAMD_USERNAME,
+            password: process.env.INSTAMD_PASSWORD,
+            database: 'instamd',
+        }
+    }
+
     /**
      * Get a database connection for a specific practice
      * This method will cache the connection for reuse
@@ -96,6 +111,47 @@ export class DatabaseService {
             return dataSource;
         } catch (error) {
             this.logger.error(`Failed to connect to database for practice ${practiceConfig.practiceName}: ${error.message}`);
+            throw error;
+        }
+    }
+
+    async getInstaMdConnection(): Promise<DataSource> {
+        // Check if we already have an initialized connection
+        const existingDataSource = this.instaMDDataSource;
+        if (existingDataSource && existingDataSource.isInitialized) {
+            return existingDataSource;
+        }
+
+        // Get practice configuration
+        const instaMdConfig = this.getInstaMDConfig();
+        if (!instaMdConfig) {
+            throw new Error(`No configuration found `);
+        }
+
+        // Create and initialize new connection
+        try {
+            this.logger.log(`Creating database connection f`);
+
+            const dataSource = new DataSource({
+                type: 'mysql',
+                host: instaMdConfig.host,
+                port: instaMdConfig.port,
+                username: instaMdConfig.username,
+                password: instaMdConfig.password,
+                database: instaMdConfig.database,
+                entities: [PatientEnrollmentPeriod, ClinicalMetricsSummary],
+                synchronize: false,
+            });
+
+            await dataSource.initialize();
+
+            // Store the connection for reuse
+            this.instaMDDataSource = dataSource;
+
+            this.logger.log(`Successfully connected to database for instamd `);
+            return dataSource;
+        } catch (error) {
+            this.logger.error(`Failed to connect to database for instamd`);
             throw error;
         }
     }

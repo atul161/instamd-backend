@@ -19,6 +19,14 @@ export interface PracticeDbConfig {
     database: string;
 }
 
+export interface InstaMDDbConfig {
+    host: string;
+    port: number;
+    username: string;
+    password: string;
+    database: string;
+}
+
 export interface EnrollmentSummary {
     periodSummary: {
         [key: string]: {

@@ -16,20 +16,20 @@ export class ClinicalService {
             this.logger.log(`Fetching clinical metrics for practice: ${practiceId}`);
 
             // Validate practice ID exists
-            const practiceConfig = this.databaseService.getPracticeConfig(practiceId);
-            if (!practiceConfig) {
+            const instaMDConfig = this.databaseService.getInstaMDConfig();
+            if (!instaMDConfig) {
                 throw new NotFoundException(`Practice with ID ${practiceId} not found`);
             }
 
             // Get database connection
-            const dataSource = await this.databaseService.getConnection(practiceId);
+            const dataSource = await this.databaseService.getInstaMdConnection();
             const queryRunner = dataSource.createQueryRunner();
 
             try {
                 // Build query based on parameters
                 let query = `
                     SELECT * 
-                    FROM clinical_metrics_summary
+                    FROM instamd.clinical_metrics_summary
                     WHERE practice_id = ?
                 `;
 
