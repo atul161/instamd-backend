@@ -40,6 +40,31 @@ export class ClinicalMetricsController {
         return result;
     }
 
+
+    /**
+     * Get clinical metrics for a specific practice
+     * @param practiceId The ID of the practice
+     * @param period Optional enrollment period filter
+     * @param startDate Optional start date for filtering data (YYYY-MM-DD)
+     * @param endDate Optional end date for filtering data (YYYY-MM-DD)
+     */
+    @Get(':practiceId/enrollment')
+    async getEnrollmentMetrics(
+        @Param('practiceId') practiceId: string,
+        @Query('period') period?: string,
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string
+    ) {
+        if(!practiceId){
+            throw new NotFoundException('Invalid practice ID');
+        }
+        // If not in cache, get fresh data
+        const result = await this.clinicalService.getClinicalMetrics(practiceId, period, startDate, endDate);
+
+
+        return result;
+    }
+
     @Get(':practiceId/patients/:metricName')
     async getPatientsByMetric(
         @Param('practiceId') practiceId: string,
