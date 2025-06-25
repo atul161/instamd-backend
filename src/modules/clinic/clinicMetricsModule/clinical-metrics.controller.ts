@@ -59,7 +59,7 @@ export class ClinicalMetricsController {
             throw new NotFoundException('Invalid practice ID');
         }
         // If not in cache, get fresh data
-        const result = await this.clinicalService.getClinicalMetrics(practiceId, period, startDate, endDate);
+        const result = await this.clinicalService.getEnrollmentMetrics(practiceId, period, startDate, endDate);
 
 
         return result;

@@ -139,7 +139,7 @@ export class ClinicalService {
 
                 // Return results in the exact format required
                 return {
-                    clinical_summaries: results
+                    enrollment_summaries: results
                 };
             } finally {
                 // Always release the query runner
