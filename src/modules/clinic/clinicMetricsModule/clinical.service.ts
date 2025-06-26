@@ -101,18 +101,13 @@ export class ClinicalService {
             try {
                 // Build query based on parameters
                 let query = `
-                    SELECT * 
-                    FROM instamd.enrollment_metrics_summary
-                    WHERE practice_id = ?
-                `;
+                SELECT * 
+                FROM instamd.enrollment_metrics_summary
+                WHERE practice_id = ? and enrollment_period = 'current'
+            `;
 
                 const params: any[] = [practiceId];
 
-                // Add period filter if provided
-                if (period) {
-                    query += ` AND enrollment_period = ?`;
-                    params.push(period);
-                }
 
                 // Add date range filters if provided
                 if (startDate) {
@@ -125,15 +120,15 @@ export class ClinicalService {
                     params.push(endDate);
                 }
 
-                // Order by date descending to get most recent first
-                query += ` ORDER BY summary_date DESC`;
+                // Order by date descending to get most recent first, limit to 1 for latest only
+                query += ` ORDER BY summary_date DESC LIMIT 1`;
 
                 // Execute query
                 const results = await queryRunner.query(query, params);
 
                 if (!results || results.length === 0) {
                     return {
-                        clinical_summaries: []
+                        enrollment_summaries: []
                     };
                 }
 
