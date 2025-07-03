@@ -5,6 +5,8 @@ import {DatabaseModule} from "../../database/database.module";
 import {ClinicalService} from "./clinical.service";
 import {ClinicalMetricsController} from "./clinical-metrics.controller";
 import {CacheModule} from "@nestjs/cache-manager";
+import {CptController} from "../cpt.controller";
+import {CptService} from "./cpt.service";
 
 @Module({
     imports: [
@@ -19,9 +21,10 @@ import {CacheModule} from "@nestjs/cache-manager";
         ScheduleModule.forRoot(),
         DatabaseModule
     ],
-    controllers: [ClinicalMetricsController],
+    controllers: [ClinicalMetricsController,CptController],
     providers: [
-        ClinicalService
+        ClinicalService,
+        CptService
     ],
     exports: [ ClinicalService],
 })
