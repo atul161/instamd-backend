@@ -3,10 +3,12 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
 import {DatabaseModule} from "../../database/database.module";
 import {ClinicalService} from "./clinical.service";
-import {ClinicalMetricsController} from "./clinical-metrics.controller";
 import {CacheModule} from "@nestjs/cache-manager";
 import {CptController} from "../cpt.controller";
 import {CptService} from "./cpt.service";
+import {CptInsuranceController} from "../cpt-insurance.controller";
+import { CptInsuranceService } from '../cpt-insurance.service';
+import {ClinicalMetricsController} from "./clinical-metrics.controller";
 
 @Module({
     imports: [
@@ -21,10 +23,11 @@ import {CptService} from "./cpt.service";
         ScheduleModule.forRoot(),
         DatabaseModule
     ],
-    controllers: [ClinicalMetricsController,CptController],
+    controllers: [ClinicalMetricsController,CptController,CptInsuranceController],
     providers: [
         ClinicalService,
-        CptService
+        CptService,
+        CptInsuranceService,
     ],
     exports: [ ClinicalService],
 })
